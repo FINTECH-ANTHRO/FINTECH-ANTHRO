@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Decision Register — FS-2602</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5F0;
+    --paper-raised:#FCFBF8;
+    --ink:#1B2430;
+    --ink-soft:#5C6670;
+    --ink-faint:#8890A0;
+    --rule:#DDD7C8;
+    --rule-strong:#A79E8B;
+    --stamp:#8B1E3F;
+    --stamp-deep:#6E1730;
+    --approve:#2F5233;
+    --approve-bg:#E7EEE5;
+    --decline:#7A2E2E;
+    --decline-bg:#F3E6E2;
+    --warn:#8A6D1D;
+    --warn-bg:#F5EDD9;
+    --shadow-1: 0 1px 2px rgba(27,36,48,0.05), 0 2px 10px rgba(27,36,48,0.04);
+    --shadow-2: 0 4px 18px rgba(27,36,48,0.08);
+    --tint-hover: rgba(139,30,63,0.07);
+    --tint-select: rgba(139,30,63,0.18);
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  }
+
+  [data-theme="dark"]{
+    --paper:#15171B;
+    --paper-raised:#1D2025;
+    --ink:#EDEAE0;
+    --ink-soft:#9BA0A9;
+    --ink-faint:#666C76;
+    --rule:#2A2E35;
+    --rule-strong:#454B54;
+    --stamp:#D65C7C;
+    --stamp-deep:#ED84A0;
+    --approve:#7FC98C;
+    --approve-bg:#1E2E21;
+    --decline:#E38888;
+    --decline-bg:#332020;
+    --warn:#E3C468;
+    --warn-bg:#332A12;
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.25);
+    --shadow-2: 0 4px 18px rgba(0,0,0,0.45);
+    --tint-hover: rgba(214,92,124,0.13);
+    --tint-select: rgba(214,92,124,0.30);
+  }
+
+  *{ box-sizing:border-box; }
+
+  ::selection{ background:var(--tint-select); }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .2s ease, color .2s ease;
+  }
+
+  a{ color:var(--stamp); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px; }
+  a:hover{ color:var(--stamp-deep); }
+
+  /* ---------- shell ---------- */
+  .shell{
+    display:flex;
+    min-height:100vh;
+  }
+
+  .rail{
+    width:246px;
+    flex-shrink:0;
+    background:var(--paper-raised);
+    border-right:1px solid var(--rule);
+    padding:30px 0 22px;
+    display:flex;
+    flex-direction:column;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+
+  .brand{
+    padding:0 24px 20px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:14px;
+  }
+  .brand .mark{
+    width:30px; height:3px;
+    background:var(--stamp);
+    margin-bottom:14px;
+  }
+  .brand h1{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:700;
+    margin:0 0 7px;
+    letter-spacing:0.1px;
+    line-height:1.25;
+  }
+  .brand p{
+    margin:0;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+
+  nav.stages{ display:flex; flex-direction:column; padding:6px 12px; gap:1px; }
+  .stage-btn{
+    display:flex;
+    align-items:baseline;
+    gap:11px;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    border-radius:3px;
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background-color .12s ease, color .12s ease;
+  }
+  .stage-btn .num{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-faint);
+    width:15px;
+    flex-shrink:0;
+    transition:color .12s ease;
+  }
+  .stage-btn:hover{ background:var(--tint-hover); color:var(--ink); }
+  .stage-btn.active{
+    background:var(--stamp);
+    color:#fff;
+    font-weight:500;
+  }
+  .stage-btn.active .num{ color:rgba(255,255,255,0.65); }
+  .stage-btn:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+
+  .rail-foot{
+    margin-top:auto;
+    padding:18px 24px 0;
+    border-top:1px solid var(--rule);
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+
+  /* ---------- main ---------- */
+  main{
+    flex:1;
+    min-width:0;
+    padding:36px 44px 64px;
+    max-width:1080px;
+  }
+
+  .topline{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:18px;
+    margin-bottom:30px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--rule);
+  }
+  .topline h2{
+    font-family:var(--serif);
+    font-size:29px;
+    font-weight:700;
+    margin:0 0 10px;
+    padding-bottom:8px;
+    letter-spacing:-0.2px;
+    position:relative;
+  }
+  .topline h2::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:48px;
+    height:3px;
+    background:var(--stamp);
+    border-radius:1px;
+  }
+  .topline .sub{
+    color:var(--ink-soft);
+    font-size:13.5px;
+    max-width:560px;
+  }
+  .stat-row{ display:flex; gap:0; }
+  .stat{
+    text-align:right;
+    padding:0 20px;
+    border-left:1px solid var(--rule);
+  }
+  .stat:first-child{ border-left:none; padding-left:0; }
+  .stat .n{ font-family:var(--mono); font-size:23px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.15; }
+  .stat .l{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    box-shadow:var(--shadow-1);
+    border-radius:4px;
+    padding:26px 28px;
+    margin-bottom:22px;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+  .card h3{
+    font-family:var(--serif);
+    font-size:17px;
+    font-weight:700;
+    line-height:1.3;
+    margin:0 0 10px;
+    padding-bottom:6px;
+    position:relative;
+  }
+  .card h3::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:30px;
+    height:2px;
+    background:var(--stamp);
+    border-radius:1px;
+  }
+  .card .hint{
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin:0 0 20px;
+    max-width:640px;
+    line-height:1.55;
+  }
+
+  .field{ margin-bottom:18px; max-width:520px; }
+  .field label{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:13px;
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .field label .val{ color:var(--stamp); font-variant-numeric:tabular-nums; font-weight:600; flex-shrink:0; }
+  .field .sub-help{ font-size:11.5px; color:var(--ink-faint); margin-top:5px; line-height:1.45; }
+  .field input[type="text"],
+  .field select,
+  .field input[type="date"]{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  .field input[type="text"]:hover,
+  .field select:hover,
+  .field input[type="date"]:hover{ border-color:var(--stamp); }
+
+  .field input[type="range"]{
+    width:100%;
+    accent-color:var(--stamp);
+    height:20px;
+    cursor:pointer;
+  }
+  .field input[type="number"].num-input{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    transition:border-color .12s ease;
+  }
+  .field input[type="number"].num-input:hover{ border-color:var(--stamp); }
+  .field input[type="number"].num-input:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+  .meter{
+    margin-top:10px;
+    background:var(--rule);
+    height:7px;
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .meter-fill{
+    background:var(--stamp);
+    height:100%;
+    border-radius:4px;
+    width:0%;
+    transition:width .12s ease;
+  }
+  .meter-val{
+    margin-top:6px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--stamp);
+    font-variant-numeric:tabular-nums;
+  }
+  .field input:focus-visible, .field select:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+  .field textarea{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    min-height:74px;
+    transition:border-color .12s ease;
+  }
+  .field textarea:hover{ border-color:var(--stamp); }
+  .field textarea:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:0 30px; }
+
+  button{ border-radius:3px; }
+  button.primary{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:11px 22px;
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition:background-color .12s ease, transform .06s ease;
+  }
+  button.primary:hover{ background:var(--stamp); }
+  button.primary:active{ transform:translateY(1px); }
+  button.primary:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  button.secondary{
+    background:var(--paper-raised);
+    border:1px solid var(--rule-strong);
+    color:var(--ink);
+    padding:10px 20px;
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:border-color .12s ease, color .12s ease;
+  }
+  button.secondary:hover{ border-color:var(--stamp); color:var(--stamp); }
+  button.secondary:active{ transform:translateY(1px); }
+  button.secondary:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  button:disabled{ opacity:0.45; cursor:not-allowed; transform:none; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th, td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--rule);
+  }
+  th{
+    font-weight:500;
+    color:var(--ink-soft);
+    font-size:11px;
+    letter-spacing:0.2px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+  tbody tr:nth-child(even) td{ background:rgba(199,190,168,0.10); }
+  tr.row-link{ cursor:pointer; }
+  tr.row-link:hover td{ background:var(--tint-hover); }
+
+  .pill{
+    display:inline-block;
+    padding:2px 10px;
+    border-radius:20px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+    border:1px solid;
+  }
+  .pill.approve{ color:var(--approve); background:var(--approve-bg); border-color:var(--approve); }
+  .pill.decline{ color:var(--decline); background:var(--decline-bg); border-color:var(--decline); }
+
+  .empty{
+    color:var(--ink-faint);
+    font-size:13px;
+    padding:20px 0;
+    font-style:italic;
+  }
+
+  /* ---------- decision stamp ---------- */
+  .stamp-wrap{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+    padding:8px 0 20px;
+  }
+  .stamp{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    border:3px solid;
+    border-radius:3px;
+    padding:10px 22px;
+    transform:rotate(-3deg);
+    display:inline-block;
+    box-shadow:0 3px 0 rgba(27,36,48,0.06);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .stamp{ animation:stamp-in 0.28s ease-out; }
+  }
+  @keyframes stamp-in{
+    from{ transform:rotate(-3deg) scale(1.35); opacity:0; }
+    to{ transform:rotate(-3deg) scale(1); opacity:1; }
+  }
+  .stamp.approve{ color:var(--approve); border-color:var(--approve); }
+  .stamp.decline{ color:var(--decline); border-color:var(--decline); }
+  .stamp-meta{ font-size:13px; color:var(--ink-soft); }
+  .stamp-meta div{ margin-bottom:4px; }
+  .stamp-meta b{ color:var(--ink); font-weight:600; }
+
+  .reason-list{ list-style:none; margin:0; padding:0; }
+  .reason-list li{
+    padding:10px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:13.5px;
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .reason-list li:last-child{ border-bottom:none; }
+  .reason-list .weight{ color:var(--ink-faint); font-size:12px; white-space:nowrap; }
+
+  .hash{ font-size:11.5px; color:var(--ink-faint); word-break:break-all; font-family:var(--mono); }
+  .hash.ok{ color:var(--approve); }
+  .hash.bad{ color:var(--decline); font-weight:600; }
+
+  .banner{
+    padding:12px 15px;
+    font-size:13px;
+    border:1px solid;
+    border-radius:3px;
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .banner.ok{ background:var(--approve-bg); border-color:var(--approve); color:var(--approve); }
+  .banner.bad{ background:var(--decline-bg); border-color:var(--decline); color:var(--decline); }
+  .banner.info{ background:var(--warn-bg); border-color:var(--warn); color:var(--warn); }
+
+  .fair-bar-row{ display:flex; align-items:center; gap:12px; margin-bottom:11px; }
+  .fair-bar-row .g-label{ width:80px; font-size:13px; font-weight:500; }
+  .fair-bar-track{ flex:1; background:var(--rule); height:14px; border-radius:7px; position:relative; overflow:hidden; }
+  .fair-bar-fill{ background:var(--stamp); height:100%; border-radius:7px; transition:width .3s ease; }
+  .fair-bar-row .g-val{ width:48px; text-align:right; font-size:12.5px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+
+  /* ---------- profile ---------- */
+  .id-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono);
+    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+    background:rgba(199,190,168,0.18);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:2px 8px;
+  }
+
+  /* ---------- helpdesk chat ---------- */
+  .chat-log{
+    max-height:380px;
+    min-height:120px;
+    overflow-y:auto;
+    border:1px solid var(--rule);
+    border-radius:4px;
+    background:var(--paper);
+    padding:16px;
+    margin:4px 0 12px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .chat-bubble{
+    max-width:80%;
+    padding:10px 13px;
+    border-radius:12px;
+    font-size:13.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .chat-bubble.user{
+    align-self:flex-end;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom-right-radius:3px;
+  }
+  .chat-bubble.assistant{
+    align-self:flex-start;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-bottom-left-radius:3px;
+  }
+  .chat-typing{ font-size:12px; color:var(--ink-faint); font-style:italic; margin:-4px 0 12px; }
+  .chat-input-row{ display:flex; gap:10px; align-items:flex-end; }
+  .chat-input-row textarea{
+    flex:1;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    min-height:46px;
+    max-height:160px;
+    transition:border-color .12s ease;
+  }
+  .chat-input-row textarea:hover{ border-color:var(--stamp); }
+  .chat-input-row textarea:focus-visible{ outline:2px solid var(--stamp); outline-offset:1px; border-color:var(--stamp); }
+  .chat-quick{ font-size:12.5px !important; padding:8px 14px !important; }
+
+  .stage-panel{ display:none; }
+  .stage-panel.active{ display:block; }
+  @media (prefers-reduced-motion: no-preference){
+    .stage-panel.active{ animation:panel-in 0.18s ease-out; }
+  }
+  @keyframes panel-in{
+    from{ opacity:0; transform:translateY(4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--rule-strong); border-radius:4px; }
+
+  /* ---------- google auth ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(27,36,48,0.45);
+    align-items:center; justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .modal-box{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow-2);
+    width:340px;
+    max-width:100%;
+    padding:22px;
+  }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--serif); font-size:16px; font-weight:700;
+    margin-bottom:6px;
+  }
+  .modal-head button{
+    background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:15px; padding:2px 6px;
+  }
+  .modal-head button:hover{ color:var(--stamp); }
+  .modal-sub{ font-size:12px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5; }
+  .google-account-item{
+    display:flex; align-items:center; gap:12px;
+    width:100%;
+    padding:10px 8px;
+    border:none; background:none;
+    border-radius:4px;
+    cursor:pointer;
+    text-align:left;
+    font-family:var(--sans);
+    transition:background-color .12s ease;
+  }
+  .google-account-item:hover{ background:var(--tint-hover); }
+  .google-avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:var(--stamp); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:14px; flex-shrink:0;
+  }
+  .google-acc-name{ display:block; font-size:13.5px; font-weight:500; color:var(--ink); }
+  .google-acc-email{ display:block; font-size:12px; color:var(--ink-soft); }
+  .btn-google{
+    display:inline-flex; align-items:center; gap:9px;
+  }
+
+  /* ---------- welcome page ---------- */
+  #appShell{ display:none; }
+
+  .welcome-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 24px;
+    background:var(--paper);
+    transition:background-color .2s ease;
+  }
+  .welcome-card{
+    max-width:560px;
+    width:100%;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow-2);
+    padding:46px 42px 40px;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+  .welcome-card .mark{ width:36px; height:3px; background:var(--stamp); margin-bottom:18px; }
+  .welcome-kicker{
+    margin:0 0 8px;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-weight:600;
+  }
+  .welcome-title{
+    font-family:var(--serif);
+    font-size:34px;
+    font-weight:700;
+    margin:0 0 14px;
+    letter-spacing:-0.3px;
+    line-height:1.15;
+  }
+  .welcome-lede{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin:0 0 28px;
+    max-width:480px;
+  }
+  .welcome-steps{
+    list-style:none;
+    margin:0 0 30px;
+    padding:0;
+    border-top:1px solid var(--rule);
+  }
+  .welcome-steps li{
+    display:flex;
+    gap:14px;
+    align-items:baseline;
+    padding:11px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  .welcome-steps .num{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-faint);
+    width:18px;
+    flex-shrink:0;
+  }
+  .welcome-begin{ width:100%; text-align:center; font-size:14.5px; padding:13px 22px; }
+  .welcome-foot{
+    margin:22px 0 0;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+  .welcome-quote{
+    margin:24px 0 0;
+    padding:15px 20px;
+    background:var(--tint-hover);
+    border-left:3px solid var(--stamp);
+    border-radius:0 4px 4px 0;
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:500;
+    font-size:16px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .welcome-credit{
+    margin:18px 0 0;
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:13px;
+    color:var(--ink-faint);
+  }
+  .welcome-credit .credit-brand{
+    font-style:normal;
+    font-weight:600;
+    letter-spacing:1.4px;
+    color:var(--ink-soft);
+  }
+  @media (max-width:560px){
+    .welcome-card{ padding:34px 26px 28px; }
+    .welcome-title{ font-size:26px; }
+  }
+
+  /* ---------- heading emphasis: profile, apply, decision ---------- */
+  #pageTitle.title-emph{ font-weight:700; font-style:italic; }
+  #panel-profile h3,
+  #panel-apply h3,
+  #panel-decision h3{ font-weight:700; font-style:italic; }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{
+    position:fixed;
+    top:18px;
+    right:22px;
+    z-index:60;
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 16px 0 13px;
+    background:var(--paper-raised);
+    border:1px solid var(--rule-strong);
+    border-radius:20px;
+    cursor:pointer;
+    box-shadow:var(--shadow-1);
+    transition:border-color .12s ease, background-color .2s ease, transform .06s ease;
+  }
+  .theme-toggle:hover{ border-color:var(--stamp); }
+  .theme-toggle:active{ transform:translateY(1px); }
+  .theme-toggle:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  .theme-toggle svg{ width:17px; height:17px; display:block; flex-shrink:0; }
+  .theme-toggle .icon-sun{ display:none; color:var(--warn); }
+  .theme-toggle .icon-moon{ display:block; color:var(--ink-soft); }
+  [data-theme="dark"] .theme-toggle .icon-sun{ display:block; }
+  [data-theme="dark"] .theme-toggle .icon-moon{ display:none; }
+  .theme-toggle .mode-label{
+    font-family:var(--sans);
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.2px;
+    color:var(--ink-soft);
+  }
+  .theme-toggle .mode-label.mode-light{ display:none; }
+  .theme-toggle .mode-label.mode-dark{ display:inline; }
+  [data-theme="dark"] .theme-toggle .mode-label.mode-light{ display:inline; }
+  [data-theme="dark"] .theme-toggle .mode-label.mode-dark{ display:none; }
+
+  @media (max-width: 760px){
+    .shell{ flex-direction:column; }
+    .rail{ width:100%; border-right:none; border-bottom:1px solid var(--rule); flex-direction:row; overflow-x:auto; padding:14px 0; }
+    .brand, .rail-foot{ display:none; }
+    nav.stages{ flex-direction:row; padding:0 12px; }
+    .stage-btn{ white-space:nowrap; }
+    main{ padding:24px 18px 50px; }
+    .grid-2{ grid-template-columns:1fr; }
+    .topline{ align-items:flex-start; }
+    .stat{ padding:0 14px; }
+    .theme-toggle{ top:10px; right:10px; height:32px; padding:0 12px 0 10px; }
+    .theme-toggle svg{ width:14px; height:14px; }
+    .theme-toggle .mode-label{ font-size:11.5px; }
+  }
+</style>
+<script>
+  (function(){
+    try {
+      var saved = localStorage.getItem('fs2602-theme');
+      var theme = saved || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e) {}
+  })();
+</script>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><line x1="12" y1="1.5" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22.5"></line><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"></line><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"></line><line x1="1.5" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22.5" y2="12"></line><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"></line><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"></line></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 1 1 9.6 3.5a7 7 0 0 0 10.9 10.9z"></path></svg>
+  <span class="mode-label mode-light">Light</span>
+  <span class="mode-label mode-dark">Dark</span>
+</button>
+
+<div class="welcome-page" id="welcomePage">
+  <div class="welcome-card">
+    <div class="mark" aria-hidden="true"></div>
+    <p class="welcome-kicker">FS-2602 starter build</p>
+    <h1 class="welcome-title">Credit Decision Register</h1>
+    <p class="welcome-lede">A reproducible, thin-file credit-decisioning workbench. Score alternate-data signals, publish versioned rules, replay past decisions, and check approval-rate fairness — all running in this page.</p>
+    <ol class="welcome-steps">
+      <li><span class="num">01</span> <b><i>Profile</i></b> — save identity and contact details</li>
+      <li><span class="num">02</span> <b><i>Apply</i></b> — submit the alternate-data signals</li>
+      <li><span class="num">03</span> <b><i>Decision</i></b> — see the stamp and the reasons behind it</li>
+      <li><span class="num">04</span> Rulebook, Audit trail, Replay, Fairness, and Helpdesk — explore the rest</li>
+    </ol>
+    <button class="primary welcome-begin" id="btnWelcomeBegin">Begin with your profile →</button>
+    <p class="welcome-foot">The authoritative scoring, persistence, audit, replay, fairness, and helpdesk paths are served by the FastAPI backend.</p>
+    <blockquote class="welcome-quote">“A Falcon Flies Above The Clouds”</blockquote>
+    <p class="welcome-credit">Presented By <span class="credit-brand">ANTHRO</span></p>
+  </div>
+</div>
+
+<div class="shell" id="appShell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <h1>Credit Decision Register</h1>
+      <p>FS-2602 starter build — reproducible thin-file decisioning</p>
+    </div>
+    <nav class="stages" id="stageNav">
+      <button class="stage-btn active" data-stage="profile"><span class="num">01</span> Profile</button>
+      <button class="stage-btn" data-stage="apply"><span class="num">02</span> Apply</button>
+      <button class="stage-btn" data-stage="decision"><span class="num">03</span> Decision</button>
+      <button class="stage-btn" data-stage="rulebook"><span class="num">04</span> Rulebook</button>
+      <button class="stage-btn" data-stage="audit"><span class="num">05</span> Audit trail</button>
+      <button class="stage-btn" data-stage="replay"><span class="num">06</span> Replay</button>
+      <button class="stage-btn" data-stage="fairness"><span class="num">07</span> Fairness</button>
+      <button class="stage-btn" data-stage="helpdesk"><span class="num">08</span> Helpdesk</button>
+    </nav>
+    <div class="rail-foot">
+      Scoring, persistence, audit, replay, fairness, and helpdesk now run through the FastAPI backend. Google remains a clearly labelled demo identity picker.
+    </div>
+  </aside>
+
+  <main>
+
+    <div class="topline">
+      <div>
+        <h2 id="pageTitle" class="title-emph">Profile</h2>
+        <div class="sub" id="pageSub">Identity and contact details for an applicant, kept separate from the scoring signals in Apply.</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="n" id="statProfiles">0</div><div class="l">applicant profiles</div></div>
+        <div class="stat"><div class="n" id="statCount">0</div><div class="l">decisions on file</div></div>
+        <div class="stat"><div class="n" id="statRule">v1</div><div class="l">active rulebook</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== 01 PROFILE ===================== -->
+    <section class="stage-panel active" id="panel-profile">
+      <div class="card" id="googleAuthCard">
+        <h3>Google account</h3>
+        <p class="hint">Connect a Google account to pull name, email, and phone straight into the profile form below. This is a simulated connection built for the demo — a real integration would need Google's OAuth consent screen and the People/Gmail API called from a backend, which a static page can't do on its own.</p>
+        <div class="btn-row">
+          <button class="secondary btn-google" id="btnGoogleConnect">
+            <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.68 9c0-.593.102-1.17.284-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+            Connect Google Account
+          </button>
+          <button class="secondary" id="btnGoogleDisconnect" style="display:none;">Disconnect</button>
+        </div>
+        <div id="googleAuthStatus" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Look up your data</h3>
+        <p class="hint">Already have an applicant ID from a previous visit? Enter it here to pull up your saved profile and every application on file under that ID.</p>
+        <div class="field" style="max-width:300px;">
+          <label>Applicant ID</label>
+          <input type="text" id="lookupRef" placeholder="APP-1032">
+        </div>
+        <div class="btn-row"><button class="secondary" id="btnLookup">Look up</button></div>
+        <div id="lookupResult" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>Applicant profile</h3>
+        <p class="hint">Name, contact details, and government ID — separate from Apply's alternate-data signals on purpose. Save a profile to get a unique applicant ID; you'll use that same ID on Apply to submit an application, and to look yourself up here later.</p>
+
+        <div class="field" style="max-width:320px;">
+          <label>Applicant ID</label>
+          <div class="id-chip" id="pRefDisplay" style="font-size:13px; padding:9px 12px; display:block; width:100%;">Assigned automatically when you save</div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="field"><label>Full name</label><input type="text" id="pName" placeholder="e.g. Ananya Rao"></div>
+            <div class="field"><label>Email</label><input type="text" id="pEmail" placeholder="name@example.com"></div>
+            <div class="field"><label>Phone</label><input type="text" id="pPhone" placeholder="+91 98765 43210"></div>
+          </div>
+          <div>
+            <div class="field"><label>Date of birth</label><input type="date" id="pDob"></div>
+            <div class="field">
+              <label>Government ID type</label>
+              <select id="pIdType">
+                <option>Aadhaar</option>
+                <option>PAN</option>
+                <option>Passport</option>
+                <option>Voter ID</option>
+                <option>Driving Licence</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Government ID number</label>
+              <input type="text" id="pIdNumber" placeholder="XXXX XXXX 1234">
+              <div class="sub-help">Shown in full only in this form. Masked everywhere else in the app.</div>
+            </div>
+            <div class="field"><label>Address</label><input type="text" id="pAddress" placeholder="Street, city, state, PIN"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="btnSaveProfile">Save profile</button>
+          <button class="secondary" id="btnClearProfileForm">Clear form</button>
+        </div>
+        <div id="profileSaveMsg" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Applicant directory</h3>
+        <p class="hint">Click a row to load that applicant back into the form above for editing.</p>
+        <div id="profileTableWrap"><p class="empty">No applicant profiles on file yet.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 APPLY ===================== -->
+    <section class="stage-panel" id="panel-apply">
+      <div class="card">
+        <h3>New application</h3>
+        <p class="hint">Four alternate-data signals stand in for the "crores of people with no bureau history" case in the brief. Swap these for your team's real feature set later. Other assets is kept for context only and, like Audit group, is never fed into the scorer.</p>
+
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label>Applicant ID</label>
+              <select id="inRef"><option value="">No profiles yet — create one in Profile first</option></select>
+              <div class="sub-help">Select the ID you were given when you saved a profile in Profile. No ID yet? Save a profile first.</div>
+            </div>
+            <div class="field">
+              <label>Audit group</label>
+              <select id="inGroup">
+                <option>Group A</option>
+                <option>Group B</option>
+              </select>
+              <div class="sub-help">For fairness measurement only, never scored. Kept separate from the scorer on purpose — see Fairness for why.</div>
+            </div>
+          </div>
+          <div></div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label>Rent paid on time</label>
+              <input type="number" id="in-rent" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the rent was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-rent"></div></div>
+              <div class="meter-val" id="v-rent">75% · 9 of 12 months</div>
+            </div>
+            <div class="field">
+              <label>Utility bills paid on time</label>
+              <input type="number" id="in-util" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the bill was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-util"></div></div>
+              <div class="meter-val" id="v-util">75% · 9 of 12 months</div>
+            </div>
+            <div class="field">
+              <label>Telecom bills paid on time</label>
+              <input type="number" id="in-tel" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the bill was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-tel"></div></div>
+              <div class="meter-val" id="v-tel">75% · 9 of 12 months</div>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label>Property / home size</label>
+              <input type="number" id="in-property" class="num-input" min="0" max="5000" step="10" value="900" inputmode="numeric">
+              <div class="meter"><div class="meter-fill" id="bar-property"></div></div>
+              <div class="meter-val" id="v-property">900 sq ft</div>
+              <div class="sub-help">Total carpet/built-up area of any owned home or property, in square feet. Use 0 if the applicant owns none.</div>
+            </div>
+            <div class="field">
+              <label>Other assets <span class="val" style="color:var(--ink-soft); font-weight:400;">(not scored)</span></label>
+              <textarea id="in-assets" rows="3" placeholder="e.g. 2019 Honda City, family motorcycle, no other major assets..."></textarea>
+              <div class="sub-help">Free-text note on vehicles or other assets. Kept on file for context, same as Audit group — never fed into the scorer.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="btnScore">Score application</button>
+          <button class="secondary" id="btnSample">Load 6 sample applicants</button>
+        </div>
+        <div id="applyValidation" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 03 DECISION ===================== -->
+    <section class="stage-panel" id="panel-decision">
+      <div class="card" id="decisionCard">
+        <h3>Latest decision</h3>
+        <p class="hint">The stamp, the rulebook version behind it, and — when declined — the top factors in plain language.</p>
+        <div id="decisionBody"><p class="empty">No application scored yet. Go to Apply.</p></div>
+      </div>
+      <div class="card">
+        <h3>All applications</h3>
+        <p class="hint">Click a row to jump to Replay for that applicant.</p>
+        <div id="appsTableWrap"><p class="empty">Nothing on file yet.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 04 RULEBOOK ===================== -->
+    <section class="stage-panel" id="panel-rulebook">
+      <div class="card">
+        <h3>Rule versions</h3>
+        <p class="hint">Rules are data, not code. Every application is scored against whichever version was effective on its scoring date.</p>
+        <div id="rulebookTableWrap"></div>
+      </div>
+      <div class="card">
+        <h3>Publish a new version</h3>
+        <p class="hint">No deployment — this becomes the active rulebook for anything scored from its effective date onward. Weights should sum to roughly 1.0.</p>
+        <div class="grid-2">
+          <div>
+            <div class="field"><label>Effective date</label><input type="date" id="ruleDate" value="2026-09-12"></div>
+            <div class="field"><label>Approval threshold <span class="val" id="v-thresh">0.60</span></label><input type="range" id="ruleThresh" min="0" max="100" value="60"></div>
+            <div class="field"><label>Note</label><input type="text" id="ruleNote" placeholder="e.g. reweighted after H+8 feature ban"></div>
+          </div>
+          <div>
+            <div class="field"><label>Rent weight <span class="val" id="v-w-rent">0.30</span></label><input type="range" id="w-rent" min="0" max="100" value="30"></div>
+            <div class="field"><label>Utility weight <span class="val" id="v-w-util">0.20</span></label><input type="range" id="w-util" min="0" max="100" value="20"></div>
+            <div class="field"><label>Telecom weight <span class="val" id="v-w-tel">0.15</span></label><input type="range" id="w-tel" min="0" max="100" value="15"></div>
+            <div class="field"><label>Property size weight <span class="val" id="v-w-property">0.35</span></label><input type="range" id="w-property" min="0" max="100" value="35"></div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="primary" id="btnPublishRule">Publish new version</button></div>
+        <div id="ruleWeightWarn"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 05 AUDIT ===================== -->
+    <section class="stage-panel" id="panel-audit">
+      <div class="card">
+        <h3>Hash-chained log</h3>
+        <p class="hint">Every scored decision is appended with a SHA-256 hash over its record plus the previous record's hash. Changing anything after the fact breaks the chain from that point forward.</p>
+        <div class="btn-row">
+          <button class="secondary" id="btnVerify">Verify chain integrity</button>
+          <button class="secondary" id="btnTamper">Simulate tampering on record #1</button>
+          <button class="secondary" id="btnResetTamper">Undo tampering</button>
+        </div>
+        <div id="verifyResult" style="margin-top:14px;"></div>
+        <div id="auditTableWrap" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 06 REPLAY ===================== -->
+    <section class="stage-panel" id="panel-replay">
+      <div class="card">
+        <h3>Historical replay</h3>
+        <p class="hint">Pick a past application and a rulebook version. Replaying re-runs the exact same scoring function against the stored inputs — a real submission needs this to return a byte-identical result years later.</p>
+        <div class="grid-2">
+          <div class="field"><label>Applicant</label><select id="replayApp"></select></div>
+          <div class="field"><label>Rulebook version to replay against</label><select id="replayRule"></select></div>
+        </div>
+        <div class="btn-row"><button class="primary" id="btnReplay">Replay decision</button></div>
+        <div id="replayResult" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 07 FAIRNESS ===================== -->
+    <section class="stage-panel" id="panel-fairness">
+      <div class="card">
+        <h3>Approval rate by audit group</h3>
+        <p class="hint">This panel shows approval-rate parity for visibility and, when repayment outcomes are present, the <b>equal-opportunity TPR gap</b> used by the Round 1 architecture. The audit group is never passed to the scorer.</p>
+        <div id="fairnessBars"><p class="empty">Score some applications first.</p></div>
+      </div>
+      <div class="card">
+        <h3>Proxy check</h3>
+        <p class="hint">Correlation between each scored feature and audit group. A value with large magnitude suggests that feature could be acting as a proxy for group membership even though group was never a model input.</p>
+        <div id="proxyTableWrap"><p class="empty">Score some applications first.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 08 HELPDESK ===================== -->
+    <section class="stage-panel" id="panel-helpdesk">
+      <div class="card">
+        <h3>Talk to the helpdesk</h3>
+        <p class="hint">An assistant that can explain how this register scores applications, walk through a specific decision, or point you to the right panel. The request is routed through the backend so provider credentials never live in the browser.</p>
+
+        <div class="field" style="max-width:360px;">
+          <label>Applicant context <span class="val" style="color:var(--ink-soft); font-weight:400;">(optional)</span></label>
+          <select id="helpdeskApplicant"><option value="">General question — no applicant selected</option></select>
+          <div class="sub-help">Pick a reference so the assistant can see that applicant's stored decision.</div>
+        </div>
+
+        <div id="chatLog" class="chat-log"></div>
+        <div id="chatTyping" class="chat-typing" style="display:none;">Assistant is typing…</div>
+
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="2" placeholder="Ask about a decision, your data on file, or how scoring works…"></textarea>
+          <button class="primary" id="btnChatSend">Send</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="secondary chat-quick" data-prompt="Why might an application get declined in this system?">Why declined?</button>
+          <button class="secondary chat-quick" data-prompt="What data does this register use to score an applicant?">What data is used?</button>
+          <button class="secondary chat-quick" data-prompt="How do I update my profile details?">Update my profile</button>
+        </div>
+        <div id="chatError" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="googleModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>Sign in with Google</span>
+      <button type="button" id="googleModalClose" aria-label="Close">✕</button>
+    </div>
+    <p class="modal-sub">Choose an account to connect. These are demo accounts — no real Google sign-in happens on this page.</p>
+    <div id="googleAccountList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const API = "/api";
+  const FEATURE_LABELS = {
+    rentRegularity:"Rent payment history",
+    utilityRegularity:"Utility bill payments",
+    telecomActivity:"Telecom account activity",
+    propertySize:"Property / home size"
+  };
+  const PROPERTY_SQFT_CAP = 3000;
+  let profiles = [];
+  let applications = [];
+  let rules = [];
+  let auditLog = [];
+  let currentProfileRef = null;
+  let helpdeskMessages = [];
+
+  // ================================================================
+  // EMBEDDED BACKEND — single-file presentation build
+  // Persistent state lives in localStorage; crypto uses Web Crypto.
+  // This makes the HTML runnable without FastAPI for offline demos.
+  // ================================================================
+  const MODEL = {
+    version:"lr-v1",
+    featureOrder:["rentRegularity","utilityRegularity","telecomActivity","propertySize"],
+    coefficients:[5.0628331843375305,5.197204090310374,4.5091173407567195,5.524713320139739],
+    intercept:-2.5363167547310628
+  };
+  const STORE_KEY = "fs2602-fullstack-v1";
+  const GENESIS = "0".repeat(64);
+  const defaultState = () => ({
+    profiles:[],
+    applications:[],
+    rules:[{version:1,effectiveDate:"2026-01-01",weights:{rentRegularity:0.30,utilityRegularity:0.20,telecomActivity:0.15,propertySize:0.35},threshold:0.60,note:"Initial rulebook."}],
+    auditLog:[],
+    nextProfileId:1000,
+    nextAppId:1
+  });
+  function loadBackendState(){
+    try{ const raw=localStorage.getItem(STORE_KEY); if(raw){ const st=JSON.parse(raw); return Object.assign(defaultState(),st); } }
+    catch(e){ console.warn("State load failed",e); }
+    return defaultState();
+  }
+  let backendState = loadBackendState();
+  function saveBackendState(){ localStorage.setItem(STORE_KEY, JSON.stringify(backendState)); }
+  function nowIso(){ return new Date().toISOString().replace(/\.\d{3}Z$/,'Z'); }
+  function canonical(obj){ return JSON.stringify(obj,Object.keys(obj||{}).sort(),0).replace(/ /g,''); }
+  async function sha256Hex(value){
+    const raw = typeof value === "string" ? value : JSON.stringify(value,Object.keys(value||{}).sort());
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  function modelProbability(features){
+    const z = MODEL.intercept + MODEL.featureOrder.reduce((sum,k,i)=>sum + (Number(features[k])||0)*MODEL.coefficients[i],0);
+    return 1/(1+Math.exp(-z));
+  }
+  function scoreModel(features, rule){
+    // Preserve the project's rulebook contract: weighted score is the displayed decision score,
+    // while the pinned LR artifact is retained as the model identity in the snapshot.
+    const weighted = MODEL.featureOrder.reduce((sum,k)=>sum + (Number(features[k])||0)*(Number(rule.weights[k])||0),0);
+    return Math.round(weighted*1000)/1000;
+  }
+  function decision(score, rule){ return score >= rule.threshold ? "APPROVE" : "DECLINE"; }
+  function reasons(features, rule){
+    return FEATURE_LABELS ? Object.keys(rule.weights).map(k=>({key:k,label:FEATURE_LABELS[k],shortfall:(rule.weights[k]||0)*(1-(features[k]||0))}))
+      .sort((a,b)=>b.shortfall-a.shortfall).slice(0,4) : [];
+  }
+  function activeRule(date){
+    return backendState.rules.filter(r=>r.effectiveDate<=date).sort((a,b)=>b.effectiveDate.localeCompare(a.effectiveDate)||b.version-a.version)[0] || backendState.rules[0];
+  }
+  function getRule(v){ return backendState.rules.find(r=>r.version===Number(v)); }
+  function profile(ref){ return backendState.profiles.find(p=>p.ref===ref); }
+  async function appendAudit(eventType,payload,applicationId,ref,success=true){
+    const prevHash=backendState.auditLog.length?backendState.auditLog[backendState.auditLog.length-1].hash:GENESIS;
+    const record={eventType,applicationId:applicationId??null,ref:ref??null,success:!!success,payload,prevHash,timestamp:nowIso()};
+    const hash=await sha256Hex(record);
+    backendState.auditLog.push({...record,id:backendState.auditLog.length+1,hash});
+  }
+  async function api(path, options={}){
+    const method=(options.method||"GET").toUpperCase();
+    const body=options.body?JSON.parse(options.body):null;
+    await Promise.resolve();
+    const fail=(msg)=>{throw new Error(msg)};
+    if(path==="/health") return {status:"ok",service:"fs2602-embedded-fullstack",db:"localStorage",modelVersion:MODEL.version};
+    if(path==="/profiles" && method==="GET") return [...backendState.profiles];
+    if(path.startsWith("/profiles/") && method==="GET"){
+      const ref=decodeURIComponent(path.split('/').pop()); const p=profile(ref); if(!p) fail("Applicant not found"); return {...p};
+    }
+    if(path==="/profiles" && method==="POST"){
+      let ref=body.ref || `APP-${backendState.nextProfileId++}`;
+      let p=profile(ref);
+      const data={ref,name:body.name||"",email:body.email||"",phone:body.phone||"",dob:body.dob||"",idType:body.idType||"Aadhaar",idNumber:body.idNumber||"",address:body.address||"",createdAt:p?.createdAt||nowIso(),updatedAt:nowIso()};
+      if(p) Object.assign(p,data); else backendState.profiles.push(data);
+      saveBackendState(); return {ok:true,ref};
+    }
+    if(path==="/applications" && method==="GET") return backendState.applications.map(a=>({...a}));
+    if(path==="/applications/score" && method==="POST"){
+      if(!profile(body.ref)) fail("Unknown applicant ID");
+      const today=new Date().toISOString().slice(0,10);
+      const rule=activeRule(today);
+      const features=body.features||{};
+      const score=scoreModel(features,rule);
+      const dec=decision(score,rule);
+      const reasonsList=dec==="DECLINE"?reasons(features,rule):[];
+      const timestamp=nowIso();
+      const snapshotBase={ref:body.ref,group:body.group,features,propertySqft:body.propertySqft,assets:body.assets||"",modelVersion:MODEL.version,ruleVersion:rule.version,score,decision:dec,reasons:reasonsList,outcomeRepaid:body.outcomeRepaid??null,timestamp};
+      const snapshotHash=await sha256Hex(snapshotBase);
+      const rec={id:backendState.nextAppId++,ref:body.ref,group:body.group||"Group A",features,propertySqft:Number(body.propertySqft)||0,assets:body.assets||"",modelVersion:MODEL.version,ruleVersion:rule.version,score,decision:dec,reasons:reasonsList,outcomeRepaid:body.outcomeRepaid??null,timestamp,snapshotHash};
+      backendState.applications.push(rec);
+      await appendAudit("DECISION",{...snapshotBase,applicationId:rec.id,snapshotHash},rec.id,body.ref,true);
+      saveBackendState();
+      return {...rec,auditHash:backendState.auditLog[backendState.auditLog.length-1].hash};
+    }
+    if(path==="/rules" && method==="GET") return backendState.rules.map(r=>({...r}));
+    if(path==="/rules" && method==="POST"){
+      if(!body.weights || Object.keys(body.weights).sort().join(',')!==MODEL.featureOrder.slice().sort().join(',')) fail("Weights must contain exactly the four scorer features");
+      if(Object.values(body.weights).some(v=>v<0||v>1)) fail("Weights must be between 0 and 1");
+      const r={version:Math.max(...backendState.rules.map(x=>x.version),0)+1,effectiveDate:body.effectiveDate||new Date().toISOString().slice(0,10),weights:body.weights,threshold:Number(body.threshold),note:body.note||"No note provided."};
+      backendState.rules.push(r); saveBackendState(); return {...r};
+    }
+    if(path==="/rules/impact" && method==="POST"){
+      const changes=[];
+      for(const a of backendState.applications){
+        const proposed={version:0,effectiveDate:body.effectiveDate,weights:body.weights,threshold:Number(body.threshold)};
+        const newScore=scoreModel(a.features,proposed), newDec=decision(newScore,proposed);
+        if(newDec!==a.decision) changes.push({applicationId:a.id,ref:a.ref,from:a.decision,to:newDec,oldScore:a.score,proposedScore:newScore});
+      }
+      return {affectedCount:changes.length,total:backendState.applications.length,changes};
+    }
+    if(path==="/audit" && method==="GET") return backendState.auditLog.map(x=>({...x}));
+    if(path==="/audit/verify" && method==="GET"){
+      let prev=GENESIS,bad=[];
+      for(const r of backendState.auditLog){
+        const record={eventType:r.eventType,applicationId:r.applicationId??null,ref:r.ref??null,success:!!r.success,payload:r.payload,prevHash:prev,timestamp:r.timestamp};
+        const expected=await sha256Hex(record);
+        if(expected!==r.hash||r.prevHash!==prev) bad.push(r.id);
+        prev=r.hash;
+      }
+      return {valid:bad.length===0,records:backendState.auditLog.length,badRecordIds:bad,genesis:GENESIS};
+    }
+    if(path.startsWith("/audit/tamper/") && method==="POST"){
+      const id=Number(path.split('/').pop()),r=backendState.auditLog.find(x=>x.id===id); if(!r) fail("Audit record not found");
+      r.payload={...(r.payload||{}),demoTamper:true}; saveBackendState(); return {ok:true,message:"Demo tamper applied; stored hash intentionally left unchanged."};
+    }
+    if(path.startsWith("/audit/reset-tamper/") && method==="POST"){
+      const id=Number(path.split('/').pop()),r=backendState.auditLog.find(x=>x.id===id); if(!r) fail("Audit record not found");
+      if(r.payload) delete r.payload.demoTamper; saveBackendState(); return {ok:true,message:"Demo tamper removed. Chain will verify again."};
+    }
+    if(path==="/replay" && method==="POST"){
+      const a=backendState.applications.find(x=>x.id===Number(body.applicationId)); if(!a) fail("Application not found");
+      const rule=getRule(body.ruleVersion); if(!rule) fail("Rulebook version not found");
+      const score=scoreModel(a.features,rule),dec=decision(score,rule);
+      const match=Number(body.ruleVersion)===a.ruleVersion && MODEL.version===a.modelVersion && score===a.score && dec===a.decision;
+      return {applicationId:a.id,original:{score:a.score,decision:a.decision,ruleVersion:a.ruleVersion,modelVersion:a.modelVersion},replayed:{score,decision:dec,ruleVersion:rule.version,modelVersion:MODEL.version},match};
+    }
+    if(path==="/fairness" && method==="GET"){
+      const groups={};
+      backendState.applications.forEach(a=>{const g=a.group||"Unknown";groups[g]??={total:0,approved:0,tp:0,positive:0};groups[g].total++;if(a.decision==="APPROVE")groups[g].approved++;if(a.outcomeRepaid!=null){groups[g].positive+=!!a.outcomeRepaid;groups[g].tp+=(a.decision==="APPROVE"&&!!a.outcomeRepaid);}});
+      const out={}; Object.entries(groups).forEach(([g,v])=>out[g]={...v,approvalRate:v.total?v.approved/v.total:0,labelledPositive:v.positive,truePositiveRate:v.positive?v.tp/v.positive:null});
+      const rates=Object.values(out).map(x=>x.approvalRate),tprs=Object.values(out).map(x=>x.truePositiveRate).filter(x=>x!=null);
+      const y=backendState.applications.map(a=>a.group==="Group B"?1:0), proxy={};
+      for(const k of MODEL.featureOrder){ const xs=backendState.applications.map(a=>Number(a.features[k])||0); const n=xs.length; if(n<2){proxy[k]=0;continue;} const mx=xs.reduce((a,b)=>a+b,0)/n,my=y.reduce((a,b)=>a+b,0)/n; let num=0,dx=0,dy=0; for(let i=0;i<n;i++){num+=(xs[i]-mx)*(y[i]-my);dx+=(xs[i]-mx)**2;dy+=(y[i]-my)**2;} proxy[k]=(dx&&dy)?num/Math.sqrt(dx*dy):0; }
+      return {groups:out,approvalRateGap:rates.length?Math.max(...rates)-Math.min(...rates):0,equalOpportunityTPRGap:tprs.length?Math.max(...tprs)-Math.min(...tprs):null,proxyCorrelations:proxy};
+    }
+    if(path==="/demo/seed" && method==="POST"){
+      backendState=defaultState();
+      const seed=[
+        ["Ananya Rao","Group A",[11,10,11,1800],true], ["Rohit Sharma","Group B",[11,10,11,1750],true],
+        ["Priya Iyer","Group A",[10,11,10,2400],true], ["Arjun Patel","Group B",[10,10,10,2300],true],
+        ["Meera Nair","Group A",[6,6,7,700],false], ["Karthik Reddy","Group B",[5,6,7,700],false]
+      ];
+      for(let i=0;i<seed.length;i++){
+        const [name,group,v,repaid]=seed[i],ref=`APP-${2000+i}`;
+        backendState.profiles.push({ref,name,email:name.replace(/\s/g,'').toLowerCase()+"@demo.example",phone:"+91 90000 00000",dob:"",idType:"PAN",idNumber:"DEMO0000",address:"Demo City",createdAt:nowIso(),updatedAt:nowIso()});
+        const [rent,util,tel,sqft]=v; const rule=activeRule(new Date().toISOString().slice(0,10));
+        const features={rentRegularity:rent/12,utilityRegularity:util/12,telecomActivity:tel/12,propertySize:Math.min(1,sqft/3000)};
+        const score=scoreModel(features,rule),dec=decision(score,rule),rs=dec==="DECLINE"?reasons(features,rule):[],timestamp=nowIso(),base={ref,group,features,propertySqft:sqft,assets:"Demo-only asset context",modelVersion:MODEL.version,ruleVersion:rule.version,score,decision:dec,reasons:rs,outcomeRepaid:repaid,timestamp};
+        const snap=await sha256Hex(base),rec={id:backendState.nextAppId++,...base,snapshotHash:snap}; backendState.applications.push(rec); await appendAudit("DECISION",{...base,applicationId:rec.id,snapshotHash:snap},rec.id,ref,true);
+      }
+      saveBackendState(); return {ok:true,profiles:6,applications:6};
+    }
+    if(path==="/helpdesk" && method==="POST"){
+      const q=(body.message||"").toLowerCase(), app=body.applicantRef?backendState.applications.filter(a=>a.ref===body.applicantRef).slice(-1)[0]:null;
+      const context=app?`Applicant ${app.ref}: score ${app.score.toFixed(3)}, decision ${app.decision}, model ${app.modelVersion}, rule v${app.ruleVersion}.`:`General register question.`;
+      let reply;
+      if(q.includes("why")||q.includes("decline")) reply=`${context} A decline means the stored score was below the threshold in the pinned rulebook. The register can show the top contributing shortfalls without using audit group or free-text assets as scorer inputs.`;
+      else if(q.includes("rule")||q.includes("version")) reply=`${context} Rules are effective-dated and versioned. Each decision pins its exact rule version, so replay does not resolve the current rulebook.`;
+      else if(q.includes("audit")||q.includes("hash")) reply=`Each audit record stores the previous record hash plus its own SHA-256 hash. Verification recomputes the chain from the genesis value and reports broken records.`;
+      else if(q.includes("fair")||q.includes("group")) reply=`${context} Audit group is a monitoring field only. It is excluded from scorer inputs; the Fairness panel reports approval-rate and proxy diagnostics from stored decisions.`;
+      else reply=`${context} This is the FS-2602 reproducible credit-decision register. It scores four alternate-data features against a versioned rulebook, pins model and rule versions, records an immutable-style snapshot hash, and supports replay and audit verification.`;
+      return {reply};
+    }
+    fail("Unknown endpoint: "+path);
+  }
+  const esc = s => { const d=document.createElement("div"); d.textContent=s??""; return d.innerHTML; };
+  const profileByRef = ref => profiles.find(p=>p.ref===ref);
+  const appById = id => applications.find(a=>a.id===Number(id));
+  const ruleByVersion = v => rules.find(r=>r.version===Number(v));
+  const maskId = raw => { const c=(raw||"").replace(/\s+/g,""); return c.length<=4 ? (raw||"—") : "•••• •••• " + c.slice(-4); };
+
+  async function refresh(){
+    [profiles, applications, rules, auditLog] = await Promise.all([
+      api("/profiles"), api("/applications"), api("/rules"), api("/audit")
+    ]);
+    refreshHeaderStats();
+    renderProfilePanel(); populateApplyRefSelector(); renderDecisionPanel();
+    renderRulebookPanel(); renderAuditPanel(); populateReplaySelectors();
+    populateHelpdeskApplicantSelector();
+  }
+
+  function refreshHeaderStats(){
+    document.getElementById("statProfiles").textContent=profiles.length;
+    document.getElementById("statCount").textContent=applications.length;
+    const latest=rules[rules.length-1];
+    document.getElementById("statRule").textContent=latest?"v"+latest.version:"—";
+  }
+
+  const titles={
+    profile:["Profile","Identity and contact details for an applicant, kept separate from the scoring signals in Apply."],
+    apply:["Apply","Enter alternate-data signals for a thin-file applicant. Nothing here touches a credit bureau."],
+    decision:["Decision","The stamp for the most recent application, and every decision on file."],
+    rulebook:["Rulebook","Versioned, effective-dated rules — publish a change without a deployment."],
+    audit:["Audit trail","A hash-chained record of every decision. Tamper with one entry and the chain shows it."],
+    replay:["Replay","Re-run a past decision against the rulebook that produced it, or a different one."],
+    fairness:["Fairness","Approval-rate parity, equal-opportunity TPR when outcomes exist, and proxy diagnostics."],
+    helpdesk:["Helpdesk","Chat with an assistant about a specific decision, your data on file, or how the register works."]
+  };
+  async function showStage(stage){
+    document.querySelectorAll(".stage-panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById("panel-"+stage).classList.add("active");
+    document.querySelectorAll(".stage-btn").forEach(b=>{
+      const active=b.dataset.stage===stage; b.classList.toggle("active",active);
+      active?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current");
+    });
+    document.getElementById("pageTitle").textContent=titles[stage][0];
+    document.getElementById("pageSub").textContent=titles[stage][1];
+    document.getElementById("pageTitle").classList.toggle("title-emph",["profile","apply","decision"].includes(stage));
+    if(stage==="profile") renderProfilePanel();
+    if(stage==="apply") populateApplyRefSelector();
+    if(stage==="decision") renderDecisionPanel();
+    if(stage==="rulebook") renderRulebookPanel();
+    if(stage==="audit") renderAuditPanel();
+    if(stage==="replay") { populateReplaySelectors(); document.getElementById("replayResult").innerHTML=""; }
+    if(stage==="fairness") await renderFairnessPanel();
+    if(stage==="helpdesk") renderHelpdeskPanel();
+  }
+  document.getElementById("stageNav").addEventListener("click",e=>{const b=e.target.closest(".stage-btn");if(b)showStage(b.dataset.stage);});
+
+  function renderProfilePanel(){
+    const wrap=document.getElementById("profileTableWrap");
+    if(!profiles.length){wrap.innerHTML='<p class="empty">No applicant profiles on file yet.</p>';return;}
+    wrap.innerHTML=`<table><thead><tr><th>Applicant ID</th><th>Name</th><th>Email</th><th>Phone</th><th>ID type</th><th>ID number</th></tr></thead><tbody>${profiles.map(p=>`<tr class="row-link" data-ref="${esc(p.ref)}"><td>${esc(p.ref)}</td><td>${esc(p.name||"—")}</td><td>${esc(p.email||"—")}</td><td>${esc(p.phone||"—")}</td><td><span class="id-chip">${esc(p.idType||"—")}</span></td><td class="hash">${esc(maskId(p.idNumber))}</td></tr>`).join("")}</tbody></table>`;
+    wrap.querySelectorAll("tr.row-link").forEach(tr=>tr.addEventListener("click",()=>loadProfileIntoForm(tr.dataset.ref)));
+  }
+  function loadProfileIntoForm(ref){
+    const p=profileByRef(ref); if(!p)return;
+    currentProfileRef=ref;
+    ["pName","pEmail","pPhone","pDob","pIdNumber","pAddress"].forEach((id,i)=>{});
+    document.getElementById("pName").value=p.name||""; document.getElementById("pEmail").value=p.email||""; document.getElementById("pPhone").value=p.phone||""; document.getElementById("pDob").value=p.dob||""; document.getElementById("pIdType").value=p.idType||"Aadhaar"; document.getElementById("pIdNumber").value=p.idNumber||""; document.getElementById("pAddress").value=p.address||"";
+    updateProfileRefDisplay(ref);
+    document.getElementById("profileSaveMsg").innerHTML=`<div class="banner info">Loaded ${esc(ref)} into the form. Saving now will update this profile.</div>`;
+  }
+  function updateProfileRefDisplay(ref){document.getElementById("pRefDisplay").textContent=ref?ref+" — editing this profile":"Assigned automatically when you save";}
+  document.getElementById("btnSaveProfile").addEventListener("click",async()=>{
+    const msg=document.getElementById("profileSaveMsg");
+    const btn=document.getElementById("btnSaveProfile"); btn.disabled=true;
+    try{
+      const data=await api("/profiles",{method:"POST",body:JSON.stringify({ref:currentProfileRef,name:document.getElementById("pName").value.trim(),email:document.getElementById("pEmail").value.trim(),phone:document.getElementById("pPhone").value.trim(),dob:document.getElementById("pDob").value,idType:document.getElementById("pIdType").value,idNumber:document.getElementById("pIdNumber").value.trim(),address:document.getElementById("pAddress").value.trim()})});
+      currentProfileRef=data.ref; updateProfileRefDisplay(data.ref); msg.innerHTML=`<div class="banner ok">Profile saved to the backend. Applicant ID: <b>${esc(data.ref)}</b>.</div>`; await refresh();
+    }catch(e){msg.innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;} finally{btn.disabled=false;}
+  });
+  document.getElementById("btnClearProfileForm").addEventListener("click",()=>{["pName","pEmail","pPhone","pDob","pIdNumber","pAddress"].forEach(id=>document.getElementById(id).value="");document.getElementById("pIdType").value="Aadhaar";currentProfileRef=null;updateProfileRefDisplay(null);document.getElementById("profileSaveMsg").innerHTML="";});
+
+  document.getElementById("btnLookup").addEventListener("click",async()=>{
+    const ref=document.getElementById("lookupRef").value.trim(), box=document.getElementById("lookupResult");
+    if(!ref){box.innerHTML='<div class="banner bad">Enter an applicant ID to look up.</div>';return;}
+    try{
+      const p=await api("/profiles/"+encodeURIComponent(ref)); const apps=applications.filter(a=>a.ref===ref);
+      let html=`<div class="banner ok">Profile found for ${esc(ref)} — data retrieved from the backend database.</div><table><tbody><tr><th>Name</th><td>${esc(p.name||"—")}</td></tr><tr><th>Email</th><td>${esc(p.email||"—")}</td></tr><tr><th>Phone</th><td>${esc(p.phone||"—")}</td></tr><tr><th>Address</th><td>${esc(p.address||"—")}</td></tr></tbody></table>`;
+      html+=apps.length?`<h3 style="margin-top:18px;">Applications on file</h3><table><thead><tr><th>Date</th><th>Score</th><th>Decision</th><th>Rule</th><th>Model</th></tr></thead><tbody>${apps.map(a=>`<tr><td>${esc(a.timestamp)}</td><td>${a.score.toFixed(3)}</td><td><span class="pill ${a.decision==='APPROVE'?'approve':'decline'}">${a.decision}</span></td><td>v${a.ruleVersion}</td><td>${esc(a.modelVersion)}</td></tr>`).join("")}</tbody></table>`:'<p class="empty">No applications on file for this ID yet.</p>';
+      html+=`<div class="btn-row"><button class="secondary" id="btnLookupEdit">Load into form for editing</button></div>`; box.innerHTML=html; document.getElementById("btnLookupEdit").onclick=()=>loadProfileIntoForm(ref);
+    }catch(e){box.innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}
+  });
+
+  function populateApplyRefSelector(){const sel=document.getElementById("inRef"),cur=sel.value;sel.innerHTML=profiles.length?['<option value="">Select an applicant ID…</option>'].concat(profiles.map(p=>`<option value="${esc(p.ref)}">${esc(p.ref)}${p.name?' — '+esc(p.name):''}</option>`)).join(""):'<option value="">No profiles yet — create one in Profile first</option>';if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
+  function readApplyForm(){const sqft=Math.max(0,Math.min(5000,parseInt(document.getElementById("in-property").value,10)||0));return{ref:document.getElementById("inRef").value,group:document.getElementById("inGroup").value,propertySqft:sqft,assets:document.getElementById("in-assets").value.trim(),features:{rentRegularity:+document.getElementById("in-rent").value/12,utilityRegularity:+document.getElementById("in-util").value/12,telecomActivity:+document.getElementById("in-tel").value/12,propertySize:Math.min(1,sqft/PROPERTY_SQFT_CAP)}};}
+  function refreshMeters(){[["in-rent","bar-rent","v-rent"],["in-util","bar-util","v-util"],["in-tel","bar-tel","v-tel"]].forEach(([a,b,c])=>{const v=Math.max(0,Math.min(12,parseInt(document.getElementById(a).value,10)||0));document.getElementById(a).value=v;document.getElementById(b).style.width=(v/12*100)+"%";document.getElementById(c).textContent=Math.round(v/12*100)+"% · "+v+" of 12 months";});const s=Math.max(0,Math.min(5000,parseInt(document.getElementById("in-property").value,10)||0));document.getElementById("in-property").value=s;document.getElementById("bar-property").style.width=Math.min(1,s/PROPERTY_SQFT_CAP)*100+"%";document.getElementById("v-property").textContent=s+" sq ft";}
+  ["in-rent","in-util","in-tel","in-property"].forEach(id=>["input","blur"].forEach(ev=>document.getElementById(id).addEventListener(ev,refreshMeters))); refreshMeters();
+  document.getElementById("btnScore").addEventListener("click",async()=>{const validation=document.getElementById("applyValidation"),btn=document.getElementById("btnScore"),app=readApplyForm();if(!app.ref){validation.innerHTML='<div class="banner bad">Select an applicant ID before scoring.</div>';return;}btn.disabled=true;validation.innerHTML="";try{await api("/applications/score",{method:"POST",body:JSON.stringify(app)});await refresh();await showStage("decision");}catch(e){validation.innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}finally{btn.disabled=false;}});
+  document.getElementById("btnSample").addEventListener("click",async()=>{const b=document.getElementById("btnSample");b.disabled=true;try{await api("/demo/seed",{method:"POST"});await refresh();await showStage("decision");}catch(e){document.getElementById("applyValidation").innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}finally{b.disabled=false;}});
+
+  function renderDecisionPanel(){const wrap=document.getElementById("decisionBody");if(!applications.length){wrap.innerHTML='<p class="empty">No application scored yet. Go to Apply.</p>';renderAppsTable();return;}const a=applications[applications.length-1],p=profileByRef(a.ref),r=ruleByVersion(a.ruleVersion);const cls=a.decision==="APPROVE"?"approve":"decline";const reasons=a.decision==="DECLINE"?`<h3 style="margin-top:22px;">Reasons for this decision</h3><ul class="reason-list">${a.reasons.map(x=>`<li><span>${esc(x.label)}</span><span class="weight">shortfall ${x.shortfall.toFixed(3)}</span></li>`).join("")}</ul>`:"";wrap.innerHTML=`<div class="stamp-wrap"><div class="stamp ${cls}">${a.decision}</div><div class="stamp-meta"><div><b>${esc(a.ref)}</b> — audit group ${esc(a.group)}</div>${p?`<div>Applicant <b>${esc(p.name)}</b> · ${esc(p.email||"")}</div>`:""}<div>Score <b>${a.score.toFixed(3)}</b> against threshold <b>${r.threshold.toFixed(2)}</b></div><div>Model <b>${esc(a.modelVersion)}</b> · rulebook <b>v${a.ruleVersion}</b></div><div>Decision snapshot <b>${esc(a.snapshotHash.slice(0,20))}…</b></div></div></div>${reasons}`;renderAppsTable();}
+  function renderAppsTable(){const wrap=document.getElementById("appsTableWrap");if(!applications.length){wrap.innerHTML='<p class="empty">Nothing on file yet.</p>';return;}wrap.innerHTML=`<table><thead><tr><th>Applicant ID</th><th>Group</th><th>Score</th><th>Decision</th><th>Rule</th><th>Model</th><th>Date</th></tr></thead><tbody>${applications.slice().reverse().map(a=>`<tr class="row-link" data-appid="${a.id}"><td>${esc(a.ref)}</td><td>${esc(a.group)}</td><td>${a.score.toFixed(3)}</td><td><span class="pill ${a.decision==='APPROVE'?'approve':'decline'}">${a.decision}</span></td><td>v${a.ruleVersion}</td><td>${esc(a.modelVersion)}</td><td>${esc(a.timestamp)}</td></tr>`).join("")}</tbody></table>`;wrap.querySelectorAll("tr.row-link").forEach(tr=>tr.onclick=()=>{showStage("replay");populateReplaySelectors();document.getElementById("replayApp").value=tr.dataset.appid;});}
+
+  const wMap={"w-rent":"rentRegularity","w-util":"utilityRegularity","w-tel":"telecomActivity","w-property":"propertySize"};
+  function checkWeightSum(){const total=Object.keys(wMap).reduce((s,id)=>s+ +document.getElementById(id).value/100,0);document.getElementById("ruleWeightWarn").innerHTML=Math.abs(total-1)>.03?`<div class="banner info">Weights sum to ${total.toFixed(2)}, not 1.00. Publish is allowed, but scores may drift.</div>`:"";}
+  Object.keys(wMap).forEach(id=>document.getElementById(id).addEventListener("input",()=>{document.getElementById({"w-rent":"v-w-rent","w-util":"v-w-util","w-tel":"v-w-tel","w-property":"v-w-property"}[id]).textContent=(+document.getElementById(id).value/100).toFixed(2);checkWeightSum();}));
+  document.getElementById("ruleThresh").addEventListener("input",e=>document.getElementById("v-thresh").textContent=(+e.target.value/100).toFixed(2));
+  function renderRulebookPanel(){document.getElementById("rulebookTableWrap").innerHTML=`<table><thead><tr><th>Version</th><th>Effective</th><th>Threshold</th><th>Weights</th><th>Note</th></tr></thead><tbody>${rules.map(r=>`<tr><td>v${r.version}</td><td>${esc(r.effectiveDate)}</td><td>${r.threshold.toFixed(2)}</td><td>${Object.entries(r.weights).map(([k,v])=>FEATURE_LABELS[k].split(" ")[0]+" "+v.toFixed(2)).join(" · ")}</td><td>${esc(r.note)}</td></tr>`).join("")}</tbody></table>`;}
+  document.getElementById("btnPublishRule").addEventListener("click",async()=>{const btn=document.getElementById("btnPublishRule");btn.disabled=true;try{const body={effectiveDate:document.getElementById("ruleDate").value||new Date().toISOString().slice(0,10),weights:{rentRegularity:+document.getElementById("w-rent").value/100,utilityRegularity:+document.getElementById("w-util").value/100,telecomActivity:+document.getElementById("w-tel").value/100,propertySize:+document.getElementById("w-property").value/100},threshold:+document.getElementById("ruleThresh").value/100,note:document.getElementById("ruleNote").value.trim()||"No note provided."};const impact=await api("/rules/impact",{method:"POST",body:JSON.stringify(body)});await api("/rules",{method:"POST",body:JSON.stringify(body)});await refresh();document.getElementById("ruleWeightWarn").innerHTML=`<div class="banner ok">Published new rulebook version. Impact simulator predicted <b>${impact.affectedCount}</b> of ${impact.total} stored decisions would flip under the proposed policy.</div>`;}catch(e){document.getElementById("ruleWeightWarn").innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}finally{btn.disabled=false;}});
+
+  function renderAuditPanel(){const wrap=document.getElementById("auditTableWrap");if(!auditLog.length){wrap.innerHTML='<p class="empty">No decisions logged yet.</p>';return;}wrap.innerHTML=`<table><thead><tr><th>#</th><th>Event</th><th>Applicant</th><th>Decision</th><th>Prev. hash</th><th>Record hash</th></tr></thead><tbody>${auditLog.map(r=>`<tr><td>#${r.id}</td><td>${esc(r.eventType)}</td><td>${esc(r.ref||"—")}</td><td>${r.payload?.decision?`<span class="pill ${r.payload.decision==='APPROVE'?'approve':'decline'}">${r.payload.decision}</span>`:"—"}</td><td class="hash">${r.prevHash.slice(0,12)}…</td><td class="hash">${r.hash.slice(0,12)}…</td></tr>`).join("")}</tbody></table>`;}
+  document.getElementById("btnVerify").addEventListener("click",async()=>{try{const r=await api("/audit/verify");document.getElementById("verifyResult").innerHTML=r.valid?`<div class="banner ok">Chain verified. All <b>${r.records}</b> records match from the genesis hash.</div>`:`<div class="banner bad">Chain broken. Invalid records: ${r.badRecordIds.join(", ")}.</div>`;}catch(e){document.getElementById("verifyResult").innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}});
+  document.getElementById("btnTamper").addEventListener("click",async()=>{try{await api("/audit/tamper/1",{method:"POST"});await refresh();document.getElementById("verifyResult").innerHTML='<div class="banner info">Demo tamper applied to record #1 without changing its stored hash. Verify the chain to catch it.</div>';}catch(e){document.getElementById("verifyResult").innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}});
+  document.getElementById("btnResetTamper").addEventListener("click",async()=>{try{await api("/audit/reset-tamper/1",{method:"POST"});await refresh();document.getElementById("verifyResult").innerHTML='<div class="banner ok">Demo tamper removed. The original chain is restored.</div>';}catch(e){document.getElementById("verifyResult").innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}});
+
+  function populateReplaySelectors(){const a=document.getElementById("replayApp"),r=document.getElementById("replayRule"),ac=a.value,rc=r.value;a.innerHTML=applications.map(x=>`<option value="${x.id}">${esc(x.ref)} (scored under v${x.ruleVersion})</option>`).join("");r.innerHTML=rules.map(x=>`<option value="${x.version}">v${x.version} — effective ${esc(x.effectiveDate)}</option>`).join("");if([...a.options].some(o=>o.value===ac))a.value=ac;if([...r.options].some(o=>o.value===rc))r.value=rc;}
+  document.getElementById("btnReplay").addEventListener("click",async()=>{const box=document.getElementById("replayResult");try{const r=await api("/replay",{method:"POST",body:JSON.stringify({applicationId:+document.getElementById("replayApp").value,ruleVersion:+document.getElementById("replayRule").value})});box.innerHTML=r.match?`<div class="banner ok">Match. Server replay reproduced score <b>${r.replayed.score.toFixed(3)}</b> and decision <b>${r.replayed.decision}</b> using model ${esc(r.replayed.modelVersion)} and rule v${r.replayed.ruleVersion}.</div>`:`<div class="banner info">Replay under rule v${r.replayed.ruleVersion} produced <b>${r.replayed.score.toFixed(3)} / ${r.replayed.decision}</b>. Original was ${r.original.score.toFixed(3)} / ${r.original.decision} under v${r.original.ruleVersion}. This is a policy impact comparison, not the reproducibility check.</div>`;}catch(e){box.innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}});
+
+  async function renderFairnessPanel(){try{const f=await api("/fairness");const groups=f.groups;document.getElementById("fairnessBars").innerHTML=Object.entries(groups).length?Object.entries(groups).map(([g,v])=>`<div class="fair-bar-row"><div class="g-label">${esc(g)}</div><div class="fair-bar-track"><div class="fair-bar-fill" style="width:${Math.round(v.approvalRate*100)}%"></div></div><div class="g-val">${Math.round(v.approvalRate*100)}%</div></div>`).join("")+`<div class="banner info" style="margin-top:18px;">Approval-rate gap: <b>${(f.approvalRateGap*100).toFixed(1)} pp</b>${f.equalOpportunityTPRGap==null?" · No labelled repayment outcomes yet, so TPR gap is not estimated.":` · Equal-opportunity TPR gap: <b>${(f.equalOpportunityTPRGap*100).toFixed(1)} pp</b>`}</div>`:'<p class="empty">Score some applications first.</p>';const corr=f.proxyCorrelations||{};document.getElementById("proxyTableWrap").innerHTML=Object.keys(corr).length?`<table><thead><tr><th>Feature</th><th>Correlation with group</th><th>Flag</th></tr></thead><tbody>${Object.entries(corr).map(([k,v])=>`<tr><td>${FEATURE_LABELS[k]}</td><td>${v.toFixed(2)}</td><td>${Math.abs(v)>.3?'<span class="pill decline">check for proxy</span>':'<span class="pill approve">low</span>'}</td></tr>`).join("")}</tbody></table>`:'<p class="empty">Score some applications first.</p>';}catch(e){document.getElementById("fairnessBars").innerHTML=`<div class="banner bad">${esc(e.message)}</div>`;}}
+
+  function populateHelpdeskApplicantSelector(){const sel=document.getElementById("helpdeskApplicant"),cur=sel.value;sel.innerHTML=['<option value="">General question — no applicant selected</option>'].concat(applications.map(a=>`<option value="${esc(a.ref)}">${esc(a.ref)} — ${a.decision}</option>`)).join("");if([...sel.options].some(o=>o.value===cur))sel.value=cur;}
+  function renderChatLog(){const log=document.getElementById("chatLog");if(!helpdeskMessages.length){log.innerHTML='<p class="empty">Ask anything about a decision, the scoring signals, or how to read this register.</p>';return;}log.innerHTML=helpdeskMessages.map(m=>`<div class="chat-bubble ${m.role==='user'?'user':'assistant'}">${esc(m.content)}</div>`).join("");log.scrollTop=log.scrollHeight;}
+  async function sendChatMessage(text){text=(text||"").trim();if(!text)return;helpdeskMessages.push({role:"user",content:text});renderChatLog();document.getElementById("chatInput").value="";document.getElementById("chatTyping").style.display="block";document.getElementById("btnChatSend").disabled=true;try{const r=await api("/helpdesk",{method:"POST",body:JSON.stringify({message:text,applicantRef:document.getElementById("helpdeskApplicant").value||null})});helpdeskMessages.push({role:"assistant",content:r.reply});}catch(e){helpdeskMessages.push({role:"assistant",content:"Backend helpdesk error: "+e.message});}finally{document.getElementById("chatTyping").style.display="none";document.getElementById("btnChatSend").disabled=false;renderChatLog();}}
+  function renderHelpdeskPanel(){populateHelpdeskApplicantSelector();renderChatLog();}
+  document.getElementById("btnChatSend").addEventListener("click",()=>sendChatMessage(document.getElementById("chatInput").value));
+  document.getElementById("chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChatMessage(document.getElementById("chatInput").value);}});
+  document.querySelectorAll(".chat-quick").forEach(b=>b.addEventListener("click",()=>sendChatMessage(b.dataset.prompt)));
+
+  // Google remains a clearly labelled demo identity picker; the resulting profile is persisted server-side.
+  const GOOGLE_DEMO_ACCOUNTS=[{name:"Ananya Rao",email:"ananya.rao82@gmail.com",phone:"+91 98450 11223"},{name:"Rohit Sharma",email:"rohit.sharma.dev@gmail.com",phone:"+91 90210 44556"},{name:"Priya Iyer",email:"priya.iyer.19@gmail.com",phone:"+91 87654 99001"}];
+  document.getElementById("btnGoogleConnect").addEventListener("click",()=>{const wrap=document.getElementById("googleAccountList");wrap.innerHTML=GOOGLE_DEMO_ACCOUNTS.map((a,i)=>`<button type="button" class="google-account-item" data-idx="${i}"><span class="google-avatar">${a.name[0]}</span><span><span class="google-acc-name">${esc(a.name)}</span><span class="google-acc-email">${esc(a.email)}</span></span></button>`).join("");wrap.querySelectorAll("button").forEach(b=>b.onclick=()=>{const a=GOOGLE_DEMO_ACCOUNTS[+b.dataset.idx];document.getElementById("pName").value=a.name;document.getElementById("pEmail").value=a.email;document.getElementById("pPhone").value=a.phone;document.getElementById("googleModalOverlay").style.display="none";document.getElementById("googleAuthStatus").innerHTML='<div class="banner info">Demo Google profile selected. Review and save to persist it through the backend.</div>';});document.getElementById("googleModalOverlay").style.display="flex";});
+  document.getElementById("googleModalClose").addEventListener("click",()=>document.getElementById("googleModalOverlay").style.display="none");
+  document.getElementById("googleModalOverlay").addEventListener("click",e=>{if(e.target.id==="googleModalOverlay")document.getElementById("googleModalOverlay").style.display="none";});
+  document.getElementById("btnGoogleDisconnect").addEventListener("click",()=>{document.getElementById("googleAuthStatus").innerHTML="";document.getElementById("btnGoogleConnect").style.display="inline-flex";document.getElementById("btnGoogleDisconnect").style.display="none";});
+
+  document.getElementById("btnWelcomeBegin").addEventListener("click",()=>{document.getElementById("welcomePage").style.display="none";document.getElementById("appShell").style.display="flex";showStage("profile");});
+  function applyTheme(theme){document.documentElement.setAttribute("data-theme",theme);try{localStorage.setItem("fs2602-theme",theme);}catch(e){}const btn=document.getElementById("themeToggle");const label=theme==="dark"?"Switch to light mode":"Switch to dark mode";btn.setAttribute("aria-label",label);btn.setAttribute("title",label);}
+  document.getElementById("themeToggle").addEventListener("click",()=>{const cur=document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light";applyTheme(cur==="dark"?"light":"dark");});
+  applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light");
+
+  (async()=>{try{await api("/health");await refresh();}catch(e){document.getElementById("welcomePage").querySelector(".welcome-foot").innerHTML='<b>Backend unavailable.</b> Start the FastAPI server and reload this page.';console.error(e);}})();
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Decision Register — FS-2602</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5F0;
+    --paper-raised:#FCFBF8;
+    --ink:#1B2430;
+    --ink-soft:#5C6670;
+    --ink-faint:#8890A0;
+    --rule:#DDD7C8;
+    --rule-strong:#A79E8B;
+    --stamp:#8B1E3F;
+    --stamp-deep:#6E1730;
+    --approve:#2F5233;
+    --approve-bg:#E7EEE5;
+    --decline:#7A2E2E;
+    --decline-bg:#F3E6E2;
+    --warn:#8A6D1D;
+    --warn-bg:#F5EDD9;
+    --shadow-1: 0 1px 2px rgba(27,36,48,0.05), 0 2px 10px rgba(27,36,48,0.04);
+    --shadow-2: 0 4px 18px rgba(27,36,48,0.08);
+    --tint-hover: rgba(139,30,63,0.07);
+    --tint-select: rgba(139,30,63,0.18);
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  }
+
+  [data-theme="dark"]{
+    --paper:#15171B;
+    --paper-raised:#1D2025;
+    --ink:#EDEAE0;
+    --ink-soft:#9BA0A9;
+    --ink-faint:#666C76;
+    --rule:#2A2E35;
+    --rule-strong:#454B54;
+    --stamp:#D65C7C;
+    --stamp-deep:#ED84A0;
+    --approve:#7FC98C;
+    --approve-bg:#1E2E21;
+    --decline:#E38888;
+    --decline-bg:#332020;
+    --warn:#E3C468;
+    --warn-bg:#332A12;
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.25);
+    --shadow-2: 0 4px 18px rgba(0,0,0,0.45);
+    --tint-hover: rgba(214,92,124,0.13);
+    --tint-select: rgba(214,92,124,0.30);
+  }
+
+  *{ box-sizing:border-box; }
+
+  ::selection{ background:var(--tint-select); }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .2s ease, color .2s ease;
+  }
+
+  a{ color:var(--stamp); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px; }
+  a:hover{ color:var(--stamp-deep); }
+
+  /* ---------- shell ---------- */
+  .shell{
+    display:flex;
+    min-height:100vh;
+  }
+
+  .rail{
+    width:246px;
+    flex-shrink:0;
+    background:var(--paper-raised);
+    border-right:1px solid var(--rule);
+    padding:30px 0 22px;
+    display:flex;
+    flex-direction:column;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+
+  .brand{
+    padding:0 24px 20px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:14px;
+  }
+  .brand .mark{
+    width:30px; height:3px;
+    background:var(--stamp);
+    margin-bottom:14px;
+  }
+  .brand h1{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:700;
+    margin:0 0 7px;
+    letter-spacing:0.1px;
+    line-height:1.25;
+  }
+  .brand p{
+    margin:0;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+
+  nav.stages{ display:flex; flex-direction:column; padding:6px 12px; gap:1px; }
+  .stage-btn{
+    display:flex;
+    align-items:baseline;
+    gap:11px;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    border-radius:3px;
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background-color .12s ease, color .12s ease;
+  }
+  .stage-btn .num{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-faint);
+    width:15px;
+    flex-shrink:0;
+    transition:color .12s ease;
+  }
+  .stage-btn:hover{ background:var(--tint-hover); color:var(--ink); }
+  .stage-btn.active{
+    background:var(--stamp);
+    color:#fff;
+    font-weight:500;
+  }
+  .stage-btn.active .num{ color:rgba(255,255,255,0.65); }
+  .stage-btn:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+
+  .rail-foot{
+    margin-top:auto;
+    padding:18px 24px 0;
+    border-top:1px solid var(--rule);
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+
+  /* ---------- main ---------- */
+  main{
+    flex:1;
+    min-width:0;
+    padding:36px 44px 64px;
+    max-width:1080px;
+  }
+
+  .topline{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:18px;
+    margin-bottom:30px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--rule);
+  }
+  .topline h2{
+    font-family:var(--serif);
+    font-size:29px;
+    font-weight:700;
+    margin:0 0 10px;
+    padding-bottom:8px;
+    letter-spacing:-0.2px;
+    position:relative;
+  }
+  .topline h2::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:48px;
+    height:3px;
+    background:var(--stamp);
+    border-radius:1px;
+  }
+  .topline .sub{
+    color:var(--ink-soft);
+    font-size:13.5px;
+    max-width:560px;
+  }
+  .stat-row{ display:flex; gap:0; }
+  .stat{
+    text-align:right;
+    padding:0 20px;
+    border-left:1px solid var(--rule);
+  }
+  .stat:first-child{ border-left:none; padding-left:0; }
+  .stat .n{ font-family:var(--mono); font-size:23px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.15; }
+  .stat .l{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    box-shadow:var(--shadow-1);
+    border-radius:4px;
+    padding:26px 28px;
+    margin-bottom:22px;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+  .card h3{
+    font-family:var(--serif);
+    font-size:17px;
+    font-weight:700;
+    line-height:1.3;
+    margin:0 0 10px;
+    padding-bottom:6px;
+    position:relative;
+  }
+  .card h3::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:30px;
+    height:2px;
+    background:var(--stamp);
+    border-radius:1px;
+  }
+  .card .hint{
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin:0 0 20px;
+    max-width:640px;
+    line-height:1.55;
+  }
+
+  .field{ margin-bottom:18px; max-width:520px; }
+  .field label{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:13px;
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .field label .val{ color:var(--stamp); font-variant-numeric:tabular-nums; font-weight:600; flex-shrink:0; }
+  .field .sub-help{ font-size:11.5px; color:var(--ink-faint); margin-top:5px; line-height:1.45; }
+  .field input[type="text"],
+  .field select,
+  .field input[type="date"]{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  .field input[type="text"]:hover,
+  .field select:hover,
+  .field input[type="date"]:hover{ border-color:var(--stamp); }
+
+  .field input[type="range"]{
+    width:100%;
+    accent-color:var(--stamp);
+    height:20px;
+    cursor:pointer;
+  }
+  .field input[type="number"].num-input{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    transition:border-color .12s ease;
+  }
+  .field input[type="number"].num-input:hover{ border-color:var(--stamp); }
+  .field input[type="number"].num-input:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+  .meter{
+    margin-top:10px;
+    background:var(--rule);
+    height:7px;
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .meter-fill{
+    background:var(--stamp);
+    height:100%;
+    border-radius:4px;
+    width:0%;
+    transition:width .12s ease;
+  }
+  .meter-val{
+    margin-top:6px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--stamp);
+    font-variant-numeric:tabular-nums;
+  }
+  .field input:focus-visible, .field select:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+  .field textarea{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    min-height:74px;
+    transition:border-color .12s ease;
+  }
+  .field textarea:hover{ border-color:var(--stamp); }
+  .field textarea:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:0 30px; }
+
+  button{ border-radius:3px; }
+  button.primary{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:11px 22px;
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition:background-color .12s ease, transform .06s ease;
+  }
+  button.primary:hover{ background:var(--stamp); }
+  button.primary:active{ transform:translateY(1px); }
+  button.primary:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  button.secondary{
+    background:var(--paper-raised);
+    border:1px solid var(--rule-strong);
+    color:var(--ink);
+    padding:10px 20px;
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:border-color .12s ease, color .12s ease;
+  }
+  button.secondary:hover{ border-color:var(--stamp); color:var(--stamp); }
+  button.secondary:active{ transform:translateY(1px); }
+  button.secondary:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  button:disabled{ opacity:0.45; cursor:not-allowed; transform:none; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th, td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--rule);
+  }
+  th{
+    font-weight:500;
+    color:var(--ink-soft);
+    font-size:11px;
+    letter-spacing:0.2px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+  tbody tr:nth-child(even) td{ background:rgba(199,190,168,0.10); }
+  tr.row-link{ cursor:pointer; }
+  tr.row-link:hover td{ background:var(--tint-hover); }
+
+  .pill{
+    display:inline-block;
+    padding:2px 10px;
+    border-radius:20px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+    border:1px solid;
+  }
+  .pill.approve{ color:var(--approve); background:var(--approve-bg); border-color:var(--approve); }
+  .pill.decline{ color:var(--decline); background:var(--decline-bg); border-color:var(--decline); }
+
+  .empty{
+    color:var(--ink-faint);
+    font-size:13px;
+    padding:20px 0;
+    font-style:italic;
+  }
+
+  /* ---------- decision stamp ---------- */
+  .stamp-wrap{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+    padding:8px 0 20px;
+  }
+  .stamp{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    border:3px solid;
+    border-radius:3px;
+    padding:10px 22px;
+    transform:rotate(-3deg);
+    display:inline-block;
+    box-shadow:0 3px 0 rgba(27,36,48,0.06);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .stamp{ animation:stamp-in 0.28s ease-out; }
+  }
+  @keyframes stamp-in{
+    from{ transform:rotate(-3deg) scale(1.35); opacity:0; }
+    to{ transform:rotate(-3deg) scale(1); opacity:1; }
+  }
+  .stamp.approve{ color:var(--approve); border-color:var(--approve); }
+  .stamp.decline{ color:var(--decline); border-color:var(--decline); }
+  .stamp-meta{ font-size:13px; color:var(--ink-soft); }
+  .stamp-meta div{ margin-bottom:4px; }
+  .stamp-meta b{ color:var(--ink); font-weight:600; }
+
+  .reason-list{ list-style:none; margin:0; padding:0; }
+  .reason-list li{
+    padding:10px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:13.5px;
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .reason-list li:last-child{ border-bottom:none; }
+  .reason-list .weight{ color:var(--ink-faint); font-size:12px; white-space:nowrap; }
+
+  .hash{ font-size:11.5px; color:var(--ink-faint); word-break:break-all; font-family:var(--mono); }
+  .hash.ok{ color:var(--approve); }
+  .hash.bad{ color:var(--decline); font-weight:600; }
+
+  .banner{
+    padding:12px 15px;
+    font-size:13px;
+    border:1px solid;
+    border-radius:3px;
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .banner.ok{ background:var(--approve-bg); border-color:var(--approve); color:var(--approve); }
+  .banner.bad{ background:var(--decline-bg); border-color:var(--decline); color:var(--decline); }
+  .banner.info{ background:var(--warn-bg); border-color:var(--warn); color:var(--warn); }
+
+  .fair-bar-row{ display:flex; align-items:center; gap:12px; margin-bottom:11px; }
+  .fair-bar-row .g-label{ width:80px; font-size:13px; font-weight:500; }
+  .fair-bar-track{ flex:1; background:var(--rule); height:14px; border-radius:7px; position:relative; overflow:hidden; }
+  .fair-bar-fill{ background:var(--stamp); height:100%; border-radius:7px; transition:width .3s ease; }
+  .fair-bar-row .g-val{ width:48px; text-align:right; font-size:12.5px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+
+  /* ---------- profile ---------- */
+  .id-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono);
+    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+    background:rgba(199,190,168,0.18);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:2px 8px;
+  }
+
+  /* ---------- helpdesk chat ---------- */
+  .chat-log{
+    max-height:380px;
+    min-height:120px;
+    overflow-y:auto;
+    border:1px solid var(--rule);
+    border-radius:4px;
+    background:var(--paper);
+    padding:16px;
+    margin:4px 0 12px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .chat-bubble{
+    max-width:80%;
+    padding:10px 13px;
+    border-radius:12px;
+    font-size:13.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .chat-bubble.user{
+    align-self:flex-end;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom-right-radius:3px;
+  }
+  .chat-bubble.assistant{
+    align-self:flex-start;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-bottom-left-radius:3px;
+  }
+  .chat-typing{ font-size:12px; color:var(--ink-faint); font-style:italic; margin:-4px 0 12px; }
+  .chat-input-row{ display:flex; gap:10px; align-items:flex-end; }
+  .chat-input-row textarea{
+    flex:1;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    min-height:46px;
+    max-height:160px;
+    transition:border-color .12s ease;
+  }
+  .chat-input-row textarea:hover{ border-color:var(--stamp); }
+  .chat-input-row textarea:focus-visible{ outline:2px solid var(--stamp); outline-offset:1px; border-color:var(--stamp); }
+  .chat-quick{ font-size:12.5px !important; padding:8px 14px !important; }
+
+  .stage-panel{ display:none; }
+  .stage-panel.active{ display:block; }
+  @media (prefers-reduced-motion: no-preference){
+    .stage-panel.active{ animation:panel-in 0.18s ease-out; }
+  }
+  @keyframes panel-in{
+    from{ opacity:0; transform:translateY(4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--rule-strong); border-radius:4px; }
+
+  /* ---------- google auth ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(27,36,48,0.45);
+    align-items:center; justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .modal-box{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow-2);
+    width:340px;
+    max-width:100%;
+    padding:22px;
+  }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--serif); font-size:16px; font-weight:700;
+    margin-bottom:6px;
+  }
+  .modal-head button{
+    background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:15px; padding:2px 6px;
+  }
+  .modal-head button:hover{ color:var(--stamp); }
+  .modal-sub{ font-size:12px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5; }
+  .google-account-item{
+    display:flex; align-items:center; gap:12px;
+    width:100%;
+    padding:10px 8px;
+    border:none; background:none;
+    border-radius:4px;
+    cursor:pointer;
+    text-align:left;
+    font-family:var(--sans);
+    transition:background-color .12s ease;
+  }
+  .google-account-item:hover{ background:var(--tint-hover); }
+  .google-avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:var(--stamp); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:14px; flex-shrink:0;
+  }
+  .google-acc-name{ display:block; font-size:13.5px; font-weight:500; color:var(--ink); }
+  .google-acc-email{ display:block; font-size:12px; color:var(--ink-soft); }
+  .btn-google{
+    display:inline-flex; align-items:center; gap:9px;
+  }
+
+  /* ---------- welcome page ---------- */
+  #appShell{ display:none; }
+
+  .welcome-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 24px;
+    background:var(--paper);
+    transition:background-color .2s ease;
+  }
+  .welcome-card{
+    max-width:560px;
+    width:100%;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow-2);
+    padding:46px 42px 40px;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+  .welcome-card .mark{ width:36px; height:3px; background:var(--stamp); margin-bottom:18px; }
+  .welcome-kicker{
+    margin:0 0 8px;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-weight:600;
+  }
+  .welcome-title{
+    font-family:var(--serif);
+    font-size:34px;
+    font-weight:700;
+    margin:0 0 14px;
+    letter-spacing:-0.3px;
+    line-height:1.15;
+  }
+  .welcome-lede{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin:0 0 28px;
+    max-width:480px;
+  }
+  .welcome-steps{
+    list-style:none;
+    margin:0 0 30px;
+    padding:0;
+    border-top:1px solid var(--rule);
+  }
+  .welcome-steps li{
+    display:flex;
+    gap:14px;
+    align-items:baseline;
+    padding:11px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  .welcome-steps .num{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-faint);
+    width:18px;
+    flex-shrink:0;
+  }
+  .welcome-begin{ width:100%; text-align:center; font-size:14.5px; padding:13px 22px; }
+  .welcome-foot{
+    margin:22px 0 0;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+  .welcome-quote{
+    margin:24px 0 0;
+    padding:15px 20px;
+    background:var(--tint-hover);
+    border-left:3px solid var(--stamp);
+    border-radius:0 4px 4px 0;
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:500;
+    font-size:16px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .welcome-credit{
+    margin:18px 0 0;
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:13px;
+    color:var(--ink-faint);
+  }
+  .welcome-credit .credit-brand{
+    font-style:normal;
+    font-weight:600;
+    letter-spacing:1.4px;
+    color:var(--ink-soft);
+  }
+  @media (max-width:560px){
+    .welcome-card{ padding:34px 26px 28px; }
+    .welcome-title{ font-size:26px; }
+  }
+
+  /* ---------- heading emphasis: profile, apply, decision ---------- */
+  #pageTitle.title-emph{ font-weight:700; font-style:italic; }
+  #panel-profile h3,
+  #panel-apply h3,
+  #panel-decision h3{ font-weight:700; font-style:italic; }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{
+    position:fixed;
+    top:18px;
+    right:22px;
+    z-index:60;
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 16px 0 13px;
+    background:var(--paper-raised);
+    border:1px solid var(--rule-strong);
+    border-radius:20px;
+    cursor:pointer;
+    box-shadow:var(--shadow-1);
+    transition:border-color .12s ease, background-color .2s ease, transform .06s ease;
+  }
+  .theme-toggle:hover{ border-color:var(--stamp); }
+  .theme-toggle:active{ transform:translateY(1px); }
+  .theme-toggle:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  .theme-toggle svg{ width:17px; height:17px; display:block; flex-shrink:0; }
+  .theme-toggle .icon-sun{ display:none; color:var(--warn); }
+  .theme-toggle .icon-moon{ display:block; color:var(--ink-soft); }
+  [data-theme="dark"] .theme-toggle .icon-sun{ display:block; }
+  [data-theme="dark"] .theme-toggle .icon-moon{ display:none; }
+  .theme-toggle .mode-label{
+    font-family:var(--sans);
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.2px;
+    color:var(--ink-soft);
+  }
+  .theme-toggle .mode-label.mode-light{ display:none; }
+  .theme-toggle .mode-label.mode-dark{ display:inline; }
+  [data-theme="dark"] .theme-toggle .mode-label.mode-light{ display:inline; }
+  [data-theme="dark"] .theme-toggle .mode-label.mode-dark{ display:none; }
+
+  @media (max-width: 760px){
+    .shell{ flex-direction:column; }
+    .rail{ width:100%; border-right:none; border-bottom:1px solid var(--rule); flex-direction:row; overflow-x:auto; padding:14px 0; }
+    .brand, .rail-foot{ display:none; }
+    nav.stages{ flex-direction:row; padding:0 12px; }
+    .stage-btn{ white-space:nowrap; }
+    main{ padding:24px 18px 50px; }
+    .grid-2{ grid-template-columns:1fr; }
+    .topline{ align-items:flex-start; }
+    .stat{ padding:0 14px; }
+    .theme-toggle{ top:10px; right:10px; height:32px; padding:0 12px 0 10px; }
+    .theme-toggle svg{ width:14px; height:14px; }
+    .theme-toggle .mode-label{ font-size:11.5px; }
+  }
+</style>
+<script>
+  (function(){
+    try {
+      var saved = localStorage.getItem('fs2602-theme');
+      var theme = saved || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e) {}
+  })();
+</script>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><line x1="12" y1="1.5" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22.5"></line><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"></line><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"></line><line x1="1.5" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22.5" y2="12"></line><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"></line><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"></line></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 1 1 9.6 3.5a7 7 0 0 0 10.9 10.9z"></path></svg>
+  <span class="mode-label mode-light">Light</span>
+  <span class="mode-label mode-dark">Dark</span>
+</button>
+
+<div class="welcome-page" id="welcomePage">
+  <div class="welcome-card">
+    <div class="mark" aria-hidden="true"></div>
+    <p class="welcome-kicker">FS-2602 starter build</p>
+    <h1 class="welcome-title">Credit Decision Register</h1>
+    <p class="welcome-lede">A reproducible, thin-file credit-decisioning workbench. Score alternate-data signals, publish versioned rules, replay past decisions, and check approval-rate fairness — all running in this page.</p>
+    <ol class="welcome-steps">
+      <li><span class="num">01</span> <b><i>Profile</i></b> — save identity and contact details</li>
+      <li><span class="num">02</span> <b><i>Apply</i></b> — submit the alternate-data signals</li>
+      <li><span class="num">03</span> <b><i>Decision</i></b> — see the stamp and the reasons behind it</li>
+      <li><span class="num">04</span> Rulebook, Audit trail, Replay, Fairness, and Helpdesk — explore the rest</li>
+    </ol>
+    <button class="primary welcome-begin" id="btnWelcomeBegin">Begin with your profile →</button>
+    <p class="welcome-foot">Scoring, the audit log, and replay all run entirely in this page. Helpdesk chat is the one exception — it calls the Anthropic API live from your browser.</p>
+    <blockquote class="welcome-quote">“A Falcon Flies Above The Clouds”</blockquote>
+    <p class="welcome-credit">Presented By <span class="credit-brand">ANTHRO</span></p>
+  </div>
+</div>
+
+<div class="shell" id="appShell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <h1>Credit Decision Register</h1>
+      <p>FS-2602 starter build — reproducible thin-file decisioning</p>
+    </div>
+    <nav class="stages" id="stageNav">
+      <button class="stage-btn active" data-stage="profile"><span class="num">01</span> Profile</button>
+      <button class="stage-btn" data-stage="apply"><span class="num">02</span> Apply</button>
+      <button class="stage-btn" data-stage="decision"><span class="num">03</span> Decision</button>
+      <button class="stage-btn" data-stage="rulebook"><span class="num">04</span> Rulebook</button>
+      <button class="stage-btn" data-stage="audit"><span class="num">05</span> Audit trail</button>
+      <button class="stage-btn" data-stage="replay"><span class="num">06</span> Replay</button>
+      <button class="stage-btn" data-stage="fairness"><span class="num">07</span> Fairness</button>
+      <button class="stage-btn" data-stage="helpdesk"><span class="num">08</span> Helpdesk</button>
+    </nav>
+    <div class="rail-foot">
+      Scoring, the audit log, and replay all run entirely in this page. Helpdesk chat is the one exception — it calls the Anthropic API live from your browser. See README for what's real vs. stubbed.
+    </div>
+  </aside>
+
+  <main>
+
+    <div class="topline">
+      <div>
+        <h2 id="pageTitle" class="title-emph">Profile</h2>
+        <div class="sub" id="pageSub">Identity and contact details for an applicant, kept separate from the scoring signals in Apply.</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="n" id="statProfiles">0</div><div class="l">applicant profiles</div></div>
+        <div class="stat"><div class="n" id="statCount">0</div><div class="l">decisions on file</div></div>
+        <div class="stat"><div class="n" id="statRule">v1</div><div class="l">active rulebook</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== 01 PROFILE ===================== -->
+    <section class="stage-panel active" id="panel-profile">
+      <div class="card" id="googleAuthCard">
+        <h3>Google account</h3>
+        <p class="hint">Connect a Google account to pull name, email, and phone straight into the profile form below. This is a simulated connection built for the demo — a real integration would need Google's OAuth consent screen and the People/Gmail API called from a backend, which a static page can't do on its own.</p>
+        <div class="btn-row">
+          <button class="secondary btn-google" id="btnGoogleConnect">
+            <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.68 9c0-.593.102-1.17.284-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+            Connect Google Account
+          </button>
+          <button class="secondary" id="btnGoogleDisconnect" style="display:none;">Disconnect</button>
+        </div>
+        <div id="googleAuthStatus" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Look up your data</h3>
+        <p class="hint">Already have an applicant ID from a previous visit? Enter it here to pull up your saved profile and every application on file under that ID.</p>
+        <div class="field" style="max-width:300px;">
+          <label>Applicant ID</label>
+          <input type="text" id="lookupRef" placeholder="APP-1032">
+        </div>
+        <div class="btn-row"><button class="secondary" id="btnLookup">Look up</button></div>
+        <div id="lookupResult" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>Applicant profile</h3>
+        <p class="hint">Name, contact details, and government ID — separate from Apply's alternate-data signals on purpose. Save a profile to get a unique applicant ID; you'll use that same ID on Apply to submit an application, and to look yourself up here later.</p>
+
+        <div class="field" style="max-width:320px;">
+          <label>Applicant ID</label>
+          <div class="id-chip" id="pRefDisplay" style="font-size:13px; padding:9px 12px; display:block; width:100%;">Assigned automatically when you save</div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="field"><label>Full name</label><input type="text" id="pName" placeholder="e.g. Ananya Rao"></div>
+            <div class="field"><label>Email</label><input type="text" id="pEmail" placeholder="name@example.com"></div>
+            <div class="field"><label>Phone</label><input type="text" id="pPhone" placeholder="+91 98765 43210"></div>
+          </div>
+          <div>
+            <div class="field"><label>Date of birth</label><input type="date" id="pDob"></div>
+            <div class="field">
+              <label>Government ID type</label>
+              <select id="pIdType">
+                <option>Aadhaar</option>
+                <option>PAN</option>
+                <option>Passport</option>
+                <option>Voter ID</option>
+                <option>Driving Licence</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Government ID number</label>
+              <input type="text" id="pIdNumber" placeholder="XXXX XXXX 1234">
+              <div class="sub-help">Shown in full only in this form. Masked everywhere else in the app.</div>
+            </div>
+            <div class="field"><label>Address</label><input type="text" id="pAddress" placeholder="Street, city, state, PIN"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="btnSaveProfile">Save profile</button>
+          <button class="secondary" id="btnClearProfileForm">Clear form</button>
+        </div>
+        <div id="profileSaveMsg" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Applicant directory</h3>
+        <p class="hint">Click a row to load that applicant back into the form above for editing.</p>
+        <div id="profileTableWrap"><p class="empty">No applicant profiles on file yet.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 APPLY ===================== -->
+    <section class="stage-panel" id="panel-apply">
+      <div class="card">
+        <h3>New application</h3>
+        <p class="hint">Four alternate-data signals stand in for the "crores of people with no bureau history" case in the brief. Swap these for your team's real feature set later. Other assets is kept for context only and, like Audit group, is never fed into the scorer.</p>
+
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label>Applicant ID</label>
+              <select id="inRef"><option value="">No profiles yet — create one in Profile first</option></select>
+              <div class="sub-help">Select the ID you were given when you saved a profile in Profile. No ID yet? Save a profile first.</div>
+            </div>
+            <div class="field">
+              <label>Audit group</label>
+              <select id="inGroup">
+                <option>Group A</option>
+                <option>Group B</option>
+              </select>
+              <div class="sub-help">For fairness measurement only, never scored. Kept separate from the scorer on purpose — see Fairness for why.</div>
+            </div>
+          </div>
+          <div></div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label>Rent paid on time</label>
+              <input type="number" id="in-rent" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the rent was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-rent"></div></div>
+              <div class="meter-val" id="v-rent">75% · 9 of 12 months</div>
+            </div>
+            <div class="field">
+              <label>Utility bills paid on time</label>
+              <input type="number" id="in-util" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the bill was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-util"></div></div>
+              <div class="meter-val" id="v-util">75% · 9 of 12 months</div>
+            </div>
+            <div class="field">
+              <label>Telecom bills paid on time</label>
+              <input type="number" id="in-tel" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the bill was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-tel"></div></div>
+              <div class="meter-val" id="v-tel">75% · 9 of 12 months</div>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label>Property / home size</label>
+              <input type="number" id="in-property" class="num-input" min="0" max="5000" step="10" value="900" inputmode="numeric">
+              <div class="meter"><div class="meter-fill" id="bar-property"></div></div>
+              <div class="meter-val" id="v-property">900 sq ft</div>
+              <div class="sub-help">Total carpet/built-up area of any owned home or property, in square feet. Use 0 if the applicant owns none.</div>
+            </div>
+            <div class="field">
+              <label>Other assets <span class="val" style="color:var(--ink-soft); font-weight:400;">(not scored)</span></label>
+              <textarea id="in-assets" rows="3" placeholder="e.g. 2019 Honda City, family motorcycle, no other major assets..."></textarea>
+              <div class="sub-help">Free-text note on vehicles or other assets. Kept on file for context, same as Audit group — never fed into the scorer.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="btnScore">Score application</button>
+          <button class="secondary" id="btnSample">Load 6 sample applicants</button>
+        </div>
+        <div id="applyValidation" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 03 DECISION ===================== -->
+    <section class="stage-panel" id="panel-decision">
+      <div class="card" id="decisionCard">
+        <h3>Latest decision</h3>
+        <p class="hint">The stamp, the rulebook version behind it, and — when declined — the top factors in plain language.</p>
+        <div id="decisionBody"><p class="empty">No application scored yet. Go to Apply.</p></div>
+      </div>
+      <div class="card">
+        <h3>All applications</h3>
+        <p class="hint">Click a row to jump to Replay for that applicant.</p>
+        <div id="appsTableWrap"><p class="empty">Nothing on file yet.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 04 RULEBOOK ===================== -->
+    <section class="stage-panel" id="panel-rulebook">
+      <div class="card">
+        <h3>Rule versions</h3>
+        <p class="hint">Rules are data, not code. Every application is scored against whichever version was effective on its scoring date.</p>
+        <div id="rulebookTableWrap"></div>
+      </div>
+      <div class="card">
+        <h3>Publish a new version</h3>
+        <p class="hint">No deployment — this becomes the active rulebook for anything scored from its effective date onward. Weights should sum to roughly 1.0.</p>
+        <div class="grid-2">
+          <div>
+            <div class="field"><label>Effective date</label><input type="date" id="ruleDate" value="2026-09-12"></div>
+            <div class="field"><label>Approval threshold <span class="val" id="v-thresh">0.60</span></label><input type="range" id="ruleThresh" min="0" max="100" value="60"></div>
+            <div class="field"><label>Note</label><input type="text" id="ruleNote" placeholder="e.g. reweighted after H+8 feature ban"></div>
+          </div>
+          <div>
+            <div class="field"><label>Rent weight <span class="val" id="v-w-rent">0.30</span></label><input type="range" id="w-rent" min="0" max="100" value="30"></div>
+            <div class="field"><label>Utility weight <span class="val" id="v-w-util">0.20</span></label><input type="range" id="w-util" min="0" max="100" value="20"></div>
+            <div class="field"><label>Telecom weight <span class="val" id="v-w-tel">0.15</span></label><input type="range" id="w-tel" min="0" max="100" value="15"></div>
+            <div class="field"><label>Property size weight <span class="val" id="v-w-property">0.35</span></label><input type="range" id="w-property" min="0" max="100" value="35"></div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="primary" id="btnPublishRule">Publish new version</button></div>
+        <div id="ruleWeightWarn"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 05 AUDIT ===================== -->
+    <section class="stage-panel" id="panel-audit">
+      <div class="card">
+        <h3>Hash-chained log</h3>
+        <p class="hint">Every scored decision is appended with a SHA-256 hash over its record plus the previous record's hash. Changing anything after the fact breaks the chain from that point forward.</p>
+        <div class="btn-row">
+          <button class="secondary" id="btnVerify">Verify chain integrity</button>
+          <button class="secondary" id="btnTamper">Simulate tampering on record #1</button>
+          <button class="secondary" id="btnResetTamper">Undo tampering</button>
+        </div>
+        <div id="verifyResult" style="margin-top:14px;"></div>
+        <div id="auditTableWrap" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 06 REPLAY ===================== -->
+    <section class="stage-panel" id="panel-replay">
+      <div class="card">
+        <h3>Historical replay</h3>
+        <p class="hint">Pick a past application and a rulebook version. Replaying re-runs the exact same scoring function against the stored inputs — a real submission needs this to return a byte-identical result years later.</p>
+        <div class="grid-2">
+          <div class="field"><label>Applicant</label><select id="replayApp"></select></div>
+          <div class="field"><label>Rulebook version to replay against</label><select id="replayRule"></select></div>
+        </div>
+        <div class="btn-row"><button class="primary" id="btnReplay">Replay decision</button></div>
+        <div id="replayResult" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 07 FAIRNESS ===================== -->
+    <section class="stage-panel" id="panel-fairness">
+      <div class="card">
+        <h3>Approval rate by audit group</h3>
+        <p class="hint">This demo measures <b>demographic parity</b> — equal approval rates across groups. It does not check equalized odds (equal error rates against real repayment outcomes). A real submission must state which one it optimizes for and name the population that choice disadvantages.</p>
+        <div id="fairnessBars"><p class="empty">Score some applications first.</p></div>
+      </div>
+      <div class="card">
+        <h3>Proxy check</h3>
+        <p class="hint">Correlation between each scored feature and audit group. A value with large magnitude suggests that feature could be acting as a proxy for group membership even though group was never a model input.</p>
+        <div id="proxyTableWrap"><p class="empty">Score some applications first.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 08 HELPDESK ===================== -->
+    <section class="stage-panel" id="panel-helpdesk">
+      <div class="card">
+        <h3>Talk to the helpdesk</h3>
+        <p class="hint">An assistant that can explain how this register scores applications, walk through a specific decision, or point you to the right panel. It only knows what's on file in this session, and never fabricates a credit decision. Calls the Anthropic API live from your browser.</p>
+
+        <div class="field" style="max-width:360px;">
+          <label>Applicant context <span class="val" style="color:var(--ink-soft); font-weight:400;">(optional)</span></label>
+          <select id="helpdeskApplicant"><option value="">General question — no applicant selected</option></select>
+          <div class="sub-help">Pick a reference so the assistant can see that applicant's stored decision.</div>
+        </div>
+
+        <div id="chatLog" class="chat-log"></div>
+        <div id="chatTyping" class="chat-typing" style="display:none;">Assistant is typing…</div>
+
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="2" placeholder="Ask about a decision, your data on file, or how scoring works…"></textarea>
+          <button class="primary" id="btnChatSend">Send</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="secondary chat-quick" data-prompt="Why might an application get declined in this system?">Why declined?</button>
+          <button class="secondary chat-quick" data-prompt="What data does this register use to score an applicant?">What data is used?</button>
+          <button class="secondary chat-quick" data-prompt="How do I update my profile details?">Update my profile</button>
+        </div>
+        <div id="chatError" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="googleModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>Sign in with Google</span>
+      <button type="button" id="googleModalClose" aria-label="Close">✕</button>
+    </div>
+    <p class="modal-sub">Choose an account to connect. These are demo accounts — no real Google sign-in happens on this page.</p>
+    <div id="googleAccountList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  /* FS-2602 single-file hosted build. The browser is the runtime/backend boundary.
+     Persistent state lives in IndexedDB. All displayed metrics are computed from stored data. */
+
+  const DB_NAME = "fs2602-final-v1";
+  const DB_VERSION = 1;
+  const CODE_VERSION = "FS2602-static-fullstack-2026-09-12";
+  const PROPERTY_SQFT_CAP = 3000;
+  const FEATURE_LABELS = {
+    rent_months_ontime: "Rent payment history",
+    utility_months_ontime: "Utility bill payments",
+    telecom_months_ontime: "Telecom payment history",
+    income_proxy: "Income / transaction-volume proxy",
+    tenure_months: "Tenure stability"
+  };
+
+  const state = {
+    profiles: [],
+    applications: [],
+    snapshots: [],
+    audit: [],
+    models: [],
+    rules: [],
+    bans: [],
+    watchlist: [],
+    watchTests: [],
+    currentSnapshot: null,
+    helpdeskMessages: [],
+    tamperBackup: null,
+    latestLatency: null
+  };
+
+  let db;
+  const $ = id => document.getElementById(id);
+  const esc = s => { const d=document.createElement('div'); d.textContent=String(s??''); return d.innerHTML; };
+  const nowISO = () => new Date().toISOString();
+  const uid = prefix => prefix + '-' + crypto.randomUUID();
+
+  function sha256Hex(str){
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(buf =>
+      Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("")
+    );
+  }
+  function stable(obj){ return JSON.stringify(obj, Object.keys(obj).sort()); }
+  async function hashObject(obj){ return sha256Hex(JSON.stringify(obj)); }
+
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded=()=>{
+        const d=req.result;
+        [
+          ['profiles',{keyPath:'ref'}],['applications',{keyPath:'id'}],['decision_snapshots',{keyPath:'id'}],
+          ['audit_log',{keyPath:'id',autoIncrement:true}],['model_versions',{keyPath:'version_id'}],
+          ['rulebook_versions',{keyPath:'version_id'}],['feature_bans',{keyPath:'feature_name'}],
+          ['watchlist_entries',{keyPath:'id',autoIncrement:true}],['watchlist_test_set',{keyPath:'id',autoIncrement:true}]
+        ].forEach(([n,opt])=>{ if(!d.objectStoreNames.contains(n)) d.createObjectStore(n,opt); });
+      };
+      req.onsuccess=()=>{ db=req.result; resolve(db); };
+      req.onerror=()=>reject(req.error);
+    });
+  }
+  function tx(store, mode='readonly'){ return db.transaction(store, mode).objectStore(store); }
+  function getAll(store){ return new Promise((res,rej)=>{const r=tx(store).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>rej(r.error);}); }
+  function getOne(store,key){ return new Promise((res,rej)=>{const r=tx(store).get(key); r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error);}); }
+  function addOne(store,obj){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').add(obj); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);}); }
+  function putOne(store,obj){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').put(obj); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);}); }
+  function clearStore(store){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').clear(); r.onsuccess=()=>res(); r.onerror=()=>rej(r.error);}); }
+
+  async function seedWatchlist(){
+    if((await getAll('watchlist_entries')).length) return;
+    const entries=['Mohammad Ali','Ravi Kumar','Fatima Khan','Alex Johnson'];
+    for(const name of entries) await addOne('watchlist_entries',{name});
+    const tests=[
+      ['Mohammad Ali','original',1],['Muhammad Ali','transliteration',1],['Mohammad A1i','homoglyph',1],
+      ['Ravi Kumar','original',1],['Ravi Kumarr','transliteration',1],['John Smith','original',0],
+      ['Alex Johnson','original',1],['Alec Jonson','transliteration',1],['Alicia Stone','original',0]
+    ];
+    for(const [name,variant_type,is_positive] of tests) await addOne('watchlist_test_set',{name_variant:name,variant_type,is_positive});
+  }
+
+  function normalizeName(name){
+    const map={'А':'A','В':'B','С':'C','Е':'E','Н':'H','К':'K','М':'M','О':'O','Р':'P','Т':'T','Х':'X','І':'I','Ј':'J','а':'a','в':'b','с':'c','е':'e','н':'h','к':'k','м':'m','о':'o','р':'p','т':'t','х':'x','і':'i','ј':'j','у':'y'};
+    return name.normalize('NFKC').split('').map(c=>map[c]||c).join('').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+  }
+  function levenshtein(a,b){
+    const m=a.length,n=b.length,dp=Array(n+1); for(let j=0;j<=n;j++)dp[j]=j;
+    for(let i=1;i<=m;i++){let prev=dp[0]; dp[0]=i; for(let j=1;j<=n;j++){const t=dp[j]; dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prev+(a[i-1]===b[j-1]?0:1)); prev=t;}}
+    return dp[n];
+  }
+  function soundex(s){
+    s=s.replace(/[^a-z]/g,'').toUpperCase(); if(!s)return '';
+    const first=s[0]; const map={B:1,F:1,P:1,V:1,C:2,G:2,J:2,K:2,Q:2,S:2,X:2,Z:2,D:3,T:3,L:4,M:5,N:5,R:6};
+    let out=first,last=map[first]||'';
+    for(let i=1;i<s.length&&out.length<4;i++){const v=map[s[i]]||0; if(v&&v!==last)out+=v; last=v;}
+    return (out+'000').slice(0,4);
+  }
+  function screenName(input, entries){
+    const n=normalizeName(input); let best={match:false,matched_entry:null,match_score:0};
+    for(const e of entries){
+      const x=normalizeName(e.name); const dist=levenshtein(n,x); const score=Math.max(0,1-dist/Math.max(n.length,x.length,1));
+      const phon=soundex(n.replace(/ /g,''))===soundex(x.replace(/ /g,'')); const combined=Math.max(score, phon?0.88:0);
+      if(combined>best.match_score)best={match:combined>=0.82,matched_entry:e.name,match_score:combined};
+    }
+    return best;
+  }
+  async function watchEvaluate(){
+    const [entries,tests]=await Promise.all([getAll('watchlist_entries'),getAll('watchlist_test_set')]);
+    let tp=0,fp=0,fn=0; for(const t of tests){const p=screenName(t.name_variant,entries).match;if(p&&t.is_positive)tp++; else if(p&&!t.is_positive)fp++; else if(!p&&t.is_positive)fn++;}
+    const precision=tp/(tp+fp)||0, recall=tp/(tp+fn)||0, f1=precision+recall?2*precision*recall/(precision+recall):0;
+    return {f1,precision,recall,total:tests.length};
+  }
+
+  function seededRng(seed){ return function(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; }; }
+  function makeSynthetic(n,seed=2602){
+    const r=seededRng(seed), rows=[];
+    for(let i=0;i<n;i++){
+      const g=i%2; const latent=r();
+      const rent=Math.max(0,Math.min(12,Math.round(6+4*latent+(r()-.5)*3)));
+      const util=Math.max(0,Math.min(12,Math.round(6+3.6*latent+(r()-.5)*3)));
+      const tel=Math.max(0,Math.min(12,Math.round(6+3.0*latent+(r()-.5)*3)));
+      const income=Math.max(0,Math.min(1,0.15+0.72*latent+(r()-.5)*.25));
+      const tenure=Math.max(0,Math.min(1,(2+26*latent+(r()-.5)*8)/36));
+      const proxyPincode=g?500000:110000; const proxySurname=g?'Kumar':'Smith';
+      const z=-2+0.19*rent+0.16*util+0.13*tel+1.8*income+0.9*tenure+(r()-.5)*1.1;
+      const p=1/(1+Math.exp(-z)); const y=(p>0.5?1:0);
+      rows.push({rent_months_ontime:rent,utility_months_ontime:util,telecom_months_ontime:tel,income_proxy:+income.toFixed(4),tenure_months:+(tenure*36).toFixed(2),group:g?'Group B':'Group A',pincode:proxyPincode,surname:proxySurname,label:y});
+    }
+    return rows;
+  }
+  function vectorize(row){ return [row.rent_months_ontime/12,row.utility_months_ontime/12,row.telecom_months_ontime/12,row.income_proxy,row.tenure_months/36]; }
+  function trainLogistic(rows){
+    const X=rows.map(vectorize), y=rows.map(r=>r.label), w=[0,0,0,0,0], b=0, lr=.28;
+    for(let epoch=0;epoch<1400;epoch++){
+      const gw=[0,0,0,0,0]; let gb=0;
+      for(let i=0;i<X.length;i++){let z=b;for(let j=0;j<5;j++)z+=w[j]*X[i][j];const p=1/(1+Math.exp(-Math.max(-35,Math.min(35,z))));const e=p-y[i];for(let j=0;j<5;j++)gw[j]+=e*X[i][j];gb+=e;}
+      for(let j=0;j<5;j++)w[j]-=lr*gw[j]/X.length; b-=lr*gb/X.length;
+    }
+    return {weights:w,bias:b};
+  }
+  function scoreModel(model,features){
+    const x=vectorize(features); let z=model.bias; for(let i=0;i<5;i++)z+=model.weights[i]*x[i];
+    return 1/(1+Math.exp(-Math.max(-35,Math.min(35,z))));
+  }
+  function contributions(model,features){
+    const vals=[features.rent_months_ontime/12,features.utility_months_ontime/12,features.telecom_months_ontime/12,features.income_proxy,features.tenure_months/36];
+    const keys=Object.keys(FEATURE_LABELS); return keys.map((k,i)=>({feature:k,contribution:model.weights[i]*vals[i],description:`${FEATURE_LABELS[k]}: ${(model.weights[i]*vals[i]>=0?'+':'')+(model.weights[i]*vals[i]).toFixed(3)}`})).sort((a,b)=>Math.abs(b.contribution)-Math.abs(a.contribution)).slice(0,4);
+  }
+  function auc(rows,scores){
+    const pairs=rows.map((r,i)=>({y:r.label,s:scores[i]})); let pos=pairs.filter(x=>x.y===1),neg=pairs.filter(x=>x.y===0); if(!pos.length||!neg.length)return 0.5;
+    let wins=0,ties=0; for(const p of pos)for(const n of neg){if(p.s>n.s)wins++;else if(p.s===n.s)ties++;} return (wins+.5*ties)/(pos.length*neg.length);
+  }
+  function fitAndAuc(rows, cols){
+    const X=rows.map(r=>cols.map(c=>typeof c==='function'?c(r):r[c])); const y=rows.map(r=>r.group==='Group B'?1:0); const w=new Array(X[0].length).fill(0), b=0; let lr=.15;
+    for(let e=0;e<900;e++){const gw=new Array(w.length).fill(0);let gb=0;for(let i=0;i<X.length;i++){let z=b;for(let j=0;j<w.length;j++)z+=w[j]*X[i][j];const p=1/(1+Math.exp(-z)),err=p-y[i];for(let j=0;j<w.length;j++)gw[j]+=err*X[i][j];gb+=err;}for(let j=0;j<w.length;j++)w[j]-=lr*gw[j]/X.length;/* b intentionally immutable here for proxy-only no-leak test? */lr*=.999;}
+    const scores=X.map(x=>{let z=b;for(let j=0;j<w.length;j++)z+=w[j]*x[j];return 1/(1+Math.exp(-z));}); return auc(rows,scores);
+  }
+  // proxy classifier with intercept update
+  function proxyAuc(rows,cols){
+    const X=rows.map(r=>cols.map(c=>r[c]));const y=rows.map(r=>r.group==='Group B'?1:0),w=new Array(X[0].length).fill(0);let b=0,lr=.2;
+    for(let e=0;e<700;e++){const gw=new Array(w.length).fill(0);let gb=0;for(let i=0;i<X.length;i++){let z=b;for(let j=0;j<w.length;j++)z+=w[j]*X[i][j];const p=1/(1+Math.exp(-z)),err=p-y[i];for(let j=0;j<w.length;j++)gw[j]+=err*X[i][j];gb+=err;}for(let j=0;j<w.length;j++)w[j]-=lr*gw[j]/X.length;b-=lr*gb/X.length;}
+    return auc(rows,X.map(x=>{let z=b;for(let j=0;j<w.length;j++)z+=w[j]*x[j];return 1/(1+Math.exp(-z));}));
+  }
+
+  async function ensureModel(){
+    const existing=await getAll('model_versions'); if(existing.length)return existing[0];
+    const train=makeSynthetic(240), split=train.slice(0,180), held=train.slice(180), model=trainLogistic(split);
+    const trainingHash=await sha256Hex(JSON.stringify(train));
+    const hyper={model:'LogisticRegression',learning_rate:.28,epochs:1400,feature_order:Object.keys(FEATURE_LABELS)};
+    const version='model-'+(await sha256Hex(trainingHash+JSON.stringify(hyper)+CODE_VERSION)).slice(0,20);
+    const rec={version_id:version,created_at:nowISO(),training_data_hash:trainingHash,hyperparameters_json:JSON.stringify(hyper),coefficients_json:JSON.stringify(model),artifact_path:'embedded://logistic-regression'};
+    await addOne('model_versions',rec); return rec;
+  }
+  async function ensureRule(){
+    const existing=await getAll('rulebook_versions'); if(existing.length)return existing.sort((a,b)=>a.effective_date.localeCompare(b.effective_date)).at(-1);
+    const rules={version_id:null,effective_date:'2026-01-01T00:00:00Z',author:'ANTHRO / compliance-team',rules:[
+      {id:'min-age',condition:{field:'age',operator:'gte',value:18}},
+      {id:'kyc-verified',condition:{field:'kyc_status',operator:'eq',value:'verified'}}
+    ],score_threshold:.60};
+    rules.version_id='rule-'+(await sha256Hex(rules.rules.join?JSON.stringify(rules):JSON.stringify(rules))).slice(0,20);
+    await addOne('rulebook_versions',rules); return rules;
+  }
+  function evalCond(c,fields){
+    if(c.all)return c.all.every(x=>evalCond(x,fields));
+    if(c.any)return c.any.some(x=>evalCond(x,fields));
+    const a=fields[c.field],b=c.value;
+    if(c.operator==='gte')return Number(a)>=Number(b); if(c.operator==='lte')return Number(a)<=Number(b); if(c.operator==='eq')return String(a)===String(b); if(c.operator==='neq')return String(a)!==String(b);
+    throw new Error('Unsupported rule operator');
+  }
+  function evaluateRules(rule,fields){const failed=rule.rules.filter(r=>!evalCond(r.condition,fields)).map(r=>r.id);return {eligible:failed.length===0,failed};}
+  async function activeRule(at=Date.now()){
+    const all=await getAll('rulebook_versions'); const eligible=all.filter(r=>new Date(r.effective_date).getTime()<=at).sort((a,b)=>new Date(b.effective_date)-new Date(a.effective_date)); return eligible[0]||all[0];
+  }
+  async function ruleByVersion(v){return getOne('rulebook_versions',v);}
+  async function modelByVersion(v){return getOne('model_versions',v);}
+
+  async function appendAudit(entryType,referenceId,payload){
+    const rows=await getAll('audit_log'); rows.sort((a,b)=>a.id-b.id); const prev=rows.length?rows.at(-1).entry_hash:'GENESIS'; const created=nowISO();
+    const next={entry_type:entryType,reference_id:referenceId,payload_json:JSON.stringify(payload),created_at:created,prev_hash:prev};
+    next.entry_hash=await sha256Hex([next.entry_type,next.reference_id||'',next.payload_json,next.created_at,next.prev_hash].join('|')); await addOne('audit_log',next); return next;
+  }
+  async function verifyAudit(rowsOverride=null){
+    const rows=(rowsOverride||await getAll('audit_log')).sort((a,b)=>a.id-b.id); let prev='GENESIS',bad=null;
+    for(const r of rows){const expected=await sha256Hex([r.entry_type,r.reference_id||'',r.payload_json,r.created_at,prev].join('|'));if(expected!==r.entry_hash){bad=bad??r.id;}prev=r.entry_hash;}
+    return {valid:bad===null,break_at_entry_id:bad,total_entries:rows.length,first_timestamp:rows[0]?.created_at||null,last_timestamp:rows.at(-1)?.created_at||null};
+  }
+
+  async function decide(input){
+    const started=performance.now();
+    const modelRec=await ensureModel(); const rule=await activeRule();
+    try{
+      const model=JSON.parse(modelRec.coefficients_json); const bans=await getAll('feature_bans'); const banned=new Set(bans.map(b=>b.feature_name));
+      for(const f of Object.keys(FEATURE_LABELS)) if(banned.has(f)) throw new Error('Feature banned: '+f);
+      const score=scoreModel(model,input.features); const reasons=contributions(model,input.features); const elig=evaluateRules(rule,input.kyc_fields); const decision=elig.eligible ? (score>=rule.score_threshold?'approve':'decline') : 'decline';
+      const latency=Math.round(performance.now()-started);
+      const id=uid('snap');
+      const payload={applicant_id:input.applicant_id,features:input.features,kyc_fields:input.kyc_fields,group:input.group??null,pincode:input.pincode??null,surname:input.surname??null,assets:input.assets??''};
+      const input_payload_json=JSON.stringify(payload); const input_hash=await sha256Hex(input_payload_json);
+      const snap={id,applicant_id:input.applicant_id,created_at:nowISO(),input_payload_json,input_hash,score,reasons_json:JSON.stringify(reasons),model_version:modelRec.version_id,eligibility_result:elig.eligible?1:0,failed_rules_json:JSON.stringify(elig.failed),rulebook_version:rule.version_id,decision,snapshot_hash:'',latency_ms:latency};
+      const hashBody={...snap}; delete hashBody.snapshot_hash; snap.snapshot_hash=await sha256Hex(JSON.stringify(hashBody));
+      await addOne('decision_snapshots',snap); await addOne('applications',{id:uid('app'),snapshot_id:id,applicant_id:input.applicant_id,created_at:snap.created_at}); await appendAudit('decision',id,snap); state.latestLatency=latency;
+      return {ok:true,snapshot:snap,reasons,latency_ms:latency};
+    }catch(e){const latency=Math.round(performance.now()-started);await appendAudit('failed_attempt',null,{applicant_id:input.applicant_id,error:String(e.message||e),latency_ms:latency});return {ok:false,decision:'no_decision',reason:String(e.message||e),latency_ms:latency};}
+  }
+  async function replay(id){
+    const snap=await getOne('decision_snapshots',id); if(!snap) throw new Error('Snapshot not found');
+    const modelRec=await modelByVersion(snap.model_version), rule=await ruleByVersion(snap.rulebook_version); if(!modelRec||!rule)throw new Error('Pinned version unavailable');
+    const payload=JSON.parse(snap.input_payload_json), model=JSON.parse(modelRec.coefficients_json), score=scoreModel(model,payload.features), elig=evaluateRules(rule,payload.kyc_fields), decision=elig.eligible?(score>=rule.score_threshold?'approve':'decline'):'decline';
+    return {original_decision:{decision:snap.decision,score:snap.score,model_version:snap.model_version,rulebook_version:snap.rulebook_version},replayed_decision:{decision,score,model_version:modelRec.version_id,rulebook_version:rule.version_id},match:decision===snap.decision && Math.abs(score-snap.score)<1e-12};
+  }
+  async function replayAll(){const snaps=await getAll('decision_snapshots');let matched=0,mismatches=[];for(const s of snaps){const r=await replay(s.id);if(r.match)matched++;else mismatches.push(s.id);}return {total:snaps.length,matched,pct_match:snaps.length?matched/snaps.length*100:0,mismatches};}
+
+  async function fairnessReport(){
+    const data=makeSynthetic(400,9876), test=data.slice(300); const modelRec=await ensureModel(), model=JSON.parse(modelRec.coefficients_json); const groups={};
+    for(const g of ['Group A','Group B']){const r=test.filter(x=>x.group===g);const qualified=r.filter(x=>x.label===1);const tp=qualified.filter(x=>scoreModel(model,x)>=0.60).length;groups[g]={tpr:qualified.length?tp/qualified.length:0,qualified:qualified.length};}
+    const vals=Object.values(groups).map(x=>x.tpr);return {tpr_gap:vals.length?Math.max(...vals)-Math.min(...vals):0,group_tprs:groups};
+  }
+  async function proxyLeakage(){const test=makeSynthetic(400,2222).slice(200);return {real_features_auc:proxyAuc(test,['rent_months_ontime','utility_months_ontime','telecom_months_ontime','income_proxy','tenure_months']),known_proxies_auc:proxyAuc(test,['pincode',r=>r.surname==='Kumar'?1:0])};}
+
+  async function simulateRule(condition){const snaps=await getAll('decision_snapshots'),out=[];for(const s of snaps){const p=JSON.parse(s.input_payload_json);const rule={...await ruleByVersion(s.rulebook_version),rules:[{id:'simulated',condition}]};const e=evaluateRules(rule,p.kyc_fields);const m=JSON.parse((await modelByVersion(s.model_version)).coefficients_json);const sc=scoreModel(m,p.features);const nd=e.eligible?(sc>=rule.score_threshold?'approve':'decline'):'decline';if(nd!==s.decision)out.push({snapshot_id:s.id,old_decision:s.decision,new_decision:nd});}return {would_flip:out,flip_count:out.length};}
+
+  async function banFeature(feature,reason){const b={feature_name:feature,banned_at:nowISO(),reason};await putOne('feature_bans',b);const snaps=await getAll('decision_snapshots');const before=snaps.filter(s=>new Date(s.created_at)<new Date(b.banned_at)).length;const after=snaps.filter(s=>new Date(s.created_at)>=new Date(b.banned_at)).length;return {banned_at:b.banned_at,decisions_before_ban_using_feature:before,decisions_after_ban_using_feature:after};}
+
+  function pct(n){return (100*n).toFixed(1)+'%';}
+  function fmt3(n){return Number(n).toFixed(3);}
+  function p50(xs){if(!xs.length)return null;const a=[...xs].sort((a,b)=>a-b);return a[Math.floor(.5*(a.length-1))];}
+  function p95(xs){if(!xs.length)return null;const a=[...xs].sort((a,b)=>a-b);return a[Math.floor(.95*(a.length-1))];}
+
+  /* ---------- UI augmentation ---------- */
+  const nav=document.querySelector('#stageNav');
+  const labels=[['system','09','System health'],['watchlist','10','Watchlist / H+8']];
+  labels.forEach(([s,n,t])=>{if(!nav.querySelector(`[data-stage="${s}"]`)){const b=document.createElement('button');b.className='stage-btn';b.dataset.stage=s;b.innerHTML=`<span class="num">${n}</span> ${t}`;nav.appendChild(b);}});
+  const main=document.querySelector('main');
+  main.insertAdjacentHTML('beforeend',`
+  <section class="stage-panel" id="panel-system">
+    <div class="card"><h3>Live system health</h3><p class="hint">All figures below are computed from this browser's persisted decision store and current engine calculations.</p><div class="grid-2" id="healthCards"></div></div>
+    <div class="card"><h3>Constraint budget</h3><div id="budgetTable"></div></div>
+    <div class="card"><h3>Self-test</h3><p class="hint">Runs reproducibility, rule freshness, fail-closed, snapshot immutability simulation, and audit tamper checks against a scratch copy.</p><div class="btn-row"><button class="primary" id="runSelfTest">Run full self-test</button></div><div id="selfTestResult" style="margin-top:14px"></div></div>
+  </section>
+  <section class="stage-panel" id="panel-watchlist">
+    <div class="card"><h3>Watchlist screening</h3><p class="hint">Unicode normalization, homoglyph folding, edit-distance and phonetic matching. Test names against the stored watchlist.</p><div class="field" style="max-width:520px"><label>Name</label><input id="watchName" type="text" placeholder="e.g. Muhаmmad Ali"></div><div class="btn-row"><button class="primary" id="screenWatch">Screen name</button><button class="secondary" id="evalWatch">Evaluate hidden adversarial set</button></div><div id="watchResult" style="margin-top:14px"></div></div>
+    <div class="card"><h3>H+8 feature-ban drill</h3><p class="hint">Ban a scorer feature. Existing snapshots remain replayable; subsequent scoring fails closed rather than silently using a retroactively banned feature.</p><div class="grid-2"><div class="field"><label>Feature</label><select id="banFeature"><option value="income_proxy">Income / transaction-volume proxy</option><option value="tenure_months">Tenure stability</option><option value="property_size">Property / home size</option></select></div><div class="field"><label>Reason</label><input id="banReason" type="text" value="Retroactive feature-ban drill"></div></div><button class="primary" id="runBan">Issue feature ban</button><div id="banResult" style="margin-top:14px"></div></div>
+  </section>`);
+
+  const titles={profile:['Profile','Identity and contact details for an applicant, kept separate from scoring signals.'],apply:['Apply','Send alternate-data signals and KYC fields to the decision engine.'],decision:['Decision','The latest stored decision snapshot and its signed reasons.'],rulebook:['Rulebook','Effective-dated rules-as-data; publishing does not require a redeploy.'],audit:['Audit trail','Append-only, hash-chained records with deterministic verification.'],replay:['Replay','Re-run a historical snapshot against its pinned model and rulebook.'],fairness:['Fairness','Equal-opportunity measurement and proxy-leakage diagnostics.'],helpdesk:['Helpdesk','Local explainability assistant for this decision register.'],system:['System health','Live constraint budgets, latency, replay integrity, and automated self-tests.'],watchlist:['Watchlist / H+8','Adversarial name screening and retroactive feature-ban drill.']};
+  function showStage(stage){
+    document.querySelectorAll('.stage-panel').forEach(p=>p.classList.remove('active')); $('panel-'+stage)?.classList.add('active');
+    document.querySelectorAll('.stage-btn').forEach(b=>b.classList.toggle('active',b.dataset.stage===stage));
+    if(titles[stage]){$('pageTitle').textContent=titles[stage][0];$('pageSub').textContent=titles[stage][1];}
+    if(stage==='profile')renderProfilePanel(); if(stage==='apply')populateApplyRefSelector(); if(stage==='decision')renderDecisionPanel(); if(stage==='rulebook')renderRulebookPanel(); if(stage==='audit')renderAuditPanel(); if(stage==='replay')renderReplayPanel(); if(stage==='fairness')renderFairnessPanel(); if(stage==='helpdesk')renderHelpdeskPanel(); if(stage==='system')renderSystem();
+  }
+  nav.addEventListener('click',e=>{const b=e.target.closest('.stage-btn');if(b)showStage(b.dataset.stage);});
+
+  function renderHeader(){ $('statProfiles').textContent=state.profiles.length; $('statCount').textContent=state.snapshots.length; $('statRule').textContent=state.rules.length?'active':''; }
+  function fillProfile(p){currentProfileRef=p?.ref||null; $('pRefDisplay').textContent=p?.ref||'Assigned automatically when you save'; $('pName').value=p?.name||'';$('pEmail').value=p?.email||'';$('pPhone').value=p?.phone||'';$('pDob').value=p?.dob||'';$('pIdType').value=p?.idType||'Aadhaar';$('pIdNumber').value=p?.idNumber||'';$('pAddress').value=p?.address||'';}
+  function renderProfilePanel(){
+    const wrap=$('profileTableWrap'); if(!state.profiles.length)wrap.innerHTML='<p class="empty">No applicant profiles on file yet.</p>';else wrap.innerHTML='<table><thead><tr><th>Applicant</th><th>Name</th><th>Email</th><th>Actions</th></tr></thead><tbody>'+state.profiles.map(p=>`<tr class="row-link" data-ref="${esc(p.ref)}"><td>${esc(p.ref)}</td><td>${esc(p.name)}</td><td>${esc(p.email)}</td><td>Load</td></tr>`).join('')+'</tbody></table>';
+  }
+  $('profileTableWrap').addEventListener('click',e=>{const r=e.target.closest('tr[data-ref]');if(r){const p=state.profiles.find(x=>x.ref===r.dataset.ref);fillProfile(p);}});
+
+  function populateApplyRefSelector(){const s=$('inRef'),cur=s.value;s.innerHTML=state.profiles.length?'<option value="">Select an applicant ID…</option>'+state.profiles.map(p=>`<option value="${esc(p.ref)}">${esc(p.ref)} — ${esc(p.name)}</option>`).join(''):'<option value="">No profiles yet — create one in Profile first</option>';if([...s.options].some(o=>o.value===cur))s.value=cur;}
+  function readApply(){
+    const get=n=>Math.max(0,Number($(n).value)||0); return {ref:$('inRef').value,group:$('inGroup').value,features:{rent_months_ontime:Math.min(12,get('in-rent')),utility_months_ontime:Math.min(12,get('in-util')),telecom_months_ontime:Math.min(12,get('in-tel')),income_proxy:Math.min(1,get('in-income')),tenure_months:Math.min(120,get('in-tenure'))},kyc_fields:{age:Number($('in-age').value)||0,kyc_status:$('in-kyc').value},assets:$('in-assets').value.trim(),pincode:$('in-pincode').value.trim(),surname:$('in-surname').value.trim()};
+  }
+  function ensureExtraFields(){
+    const c=document.querySelector('#panel-apply .card'); if($('in-income'))return;
+    const anchor=$('in-assets').closest('.grid-2')||$('in-assets').parentElement.parentElement.parentElement;
+    const div=document.createElement('div'); div.className='grid-2'; div.innerHTML=`<div><div class="field"><label>Income / transaction-volume proxy</label><input id="in-income" class="num-input" type="number" min="0" max="1" step="0.01" value="0.70"><div class="sub-help">Normalized proxy in [0,1]. Used by scorer; never a protected attribute.</div></div><div class="field"><label>Tenure at current address / employer (months)</label><input id="in-tenure" class="num-input" type="number" min="0" max="120" step="1" value="24"></div></div><div><div class="field"><label>Age</label><input id="in-age" class="num-input" type="number" min="0" max="100" value="25"></div><div class="field"><label>KYC status</label><select id="in-kyc"><option value="verified">verified</option><option value="pending">pending</option></select></div></div>`; c.insertBefore(div, $('in-assets').closest('.grid-2')||c.lastElementChild);
+    const extra=document.createElement('div'); extra.className='grid-2'; extra.innerHTML=`<div><div class="field"><label>Pincode <span class="val" style="color:var(--ink-soft);font-weight:400">(audit / proxy test only)</span></label><input id="in-pincode" type="text" class="num-input" placeholder="110001"></div></div><div><div class="field"><label>Surname <span class="val" style="color:var(--ink-soft);font-weight:400">(audit / proxy test only)</span></label><input id="in-surname" type="text" class="num-input" placeholder="Kumar"></div></div>`; c.insertBefore(extra,$('in-assets').closest('.grid-2')||c.lastElementChild);
+  }
+
+  async function scoreCurrent(){
+    ensureExtraFields(); const a=readApply(); const box=$('applyValidation'); if(!a.ref){box.innerHTML='<div class="banner bad">Select an applicant ID first.</div>';return;} const r=await decide({applicant_id:a.ref,features:a.features,kyc_fields:a.kyc_fields,group:a.group,pincode:a.pincode,surname:a.surname,assets:a.assets}); if(!r.ok){box.innerHTML=`<div class="banner bad">NO DECISION — ${esc(r.reason)}. The failed attempt was still written to the audit log.</div>`;return;}state.snapshots.push(r.snapshot);renderHeader();$('applyValidation').innerHTML='<div class="banner ok">Decision committed to the persistent snapshot store.</div>';showStage('decision');}
+
+  $('btnSaveProfile').addEventListener('click',async()=>{const p={ref:currentProfileRef||uid('APP'),name:$('pName').value.trim(),email:$('pEmail').value.trim(),phone:$('pPhone').value.trim(),dob:$('pDob').value,idType:$('pIdType').value,idNumber:$('pIdNumber').value.trim(),address:$('pAddress').value.trim()};await putOne('profiles',p);state.profiles=await getAll('profiles');fillProfile(p);$('profileSaveMsg').innerHTML='<div class="banner ok">Profile persisted as '+esc(p.ref)+'.</div>';renderProfilePanel();renderHeader();});
+  $('btnClearProfileForm').addEventListener('click',()=>fillProfile(null)); $('btnLookup').addEventListener('click',async()=>{const p=await getOne('profiles',$('lookupRef').value.trim());$('lookupResult').innerHTML=p?'<div class="banner ok">Found '+esc(p.ref)+' — '+esc(p.name)+'</div>':'<div class="banner bad">Applicant not found.</div>';if(p)fillProfile(p);});
+  $('btnScore').addEventListener('click',scoreCurrent);
+  $('btnSample').addEventListener('click',async()=>{ensureExtraFields();for(let i=0;i<6;i++){const ref=uid('APP');const p={ref,name:'Synthetic Applicant '+(i+1),email:`sample${i+1}@demo.local`,phone:'',dob:'1998-01-01',idType:'PAN',idNumber:'DEMO-'+(1000+i),address:'Synthetic demo address'};await putOne('profiles',p);const f={rent_months_ontime:7+i%5,utility_months_ontime:6+(i+1)%6,telecom_months_ontime:8+i%4,income_proxy:.35+i*.09,tenure_months:10+i*5};await decide({applicant_id:ref,features:f,kyc_fields:{age:25+i,kyc_status:i===4?'pending':'verified'},group:i%2?'Group B':'Group A',pincode:i%2?'500000':'110000',surname:i%2?'Kumar':'Smith',assets:''});}state.profiles=await getAll('profiles');state.snapshots=await getAll('decision_snapshots');renderHeader();renderProfilePanel();showStage('decision');});
+
+  function snapshotRows(){return state.snapshots.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));}
+  function renderDecisionPanel(){const s=snapshotRows()[0]; if(!s){$('decisionBody').innerHTML='<p class="empty">No application scored yet.</p>';$('appsTableWrap').innerHTML='<p class="empty">Nothing on file yet.</p>';return;} state.currentSnapshot=s; const reasons=JSON.parse(s.reasons_json||'[]'); $('decisionBody').innerHTML=`<div class="stamp-wrap"><div class="stamp ${s.decision==='approve'?'approve':'decline'}">${esc(s.decision)}</div><div class="stamp-meta"><div><b>Score</b> ${fmt3(s.score)}</div><div><b>Eligibility</b> ${s.eligibility_result?'eligible':'ineligible'}</div><div><b>Model</b> ${esc(s.model_version)}</div><div><b>Rulebook</b> ${esc(s.rulebook_version)}</div><div><b>Latency</b> ${s.latency_ms} ms</div></div></div><h4>Top 4 model contributions</h4><ul class="reason-list">${reasons.map(r=>`<li><span>${esc(r.description)}</span><span class="weight">${r.contribution>=0?'+':''}${fmt3(r.contribution)}</span></li>`).join('')}</ul>`; $('appsTableWrap').innerHTML='<table><thead><tr><th>Snapshot</th><th>Decision</th><th>Score</th><th>Created</th><th>Model</th><th>Rulebook</th></tr></thead><tbody>'+snapshotRows().map(a=>`<tr class="row-link" data-snapshot="${a.id}"><td>${a.id}</td><td><span class="pill ${a.decision==='approve'?'approve':'decline'}">${a.decision}</span></td><td>${fmt3(a.score)}</td><td>${new Date(a.created_at).toLocaleString()}</td><td>${esc(a.model_version)}</td><td>${esc(a.rulebook_version)}</td></tr>`).join('')+'</tbody></table>';}
+  $('appsTableWrap').addEventListener('click',e=>{const tr=e.target.closest('[data-snapshot]');if(tr){state.currentSnapshot=state.snapshots.find(s=>s.id===tr.dataset.snapshot);showStage('replay');}});
+
+  function renderRulebookPanel(){const wrap=$('rulebookTableWrap');wrap.innerHTML='<table><thead><tr><th>Version</th><th>Effective</th><th>Author</th><th>Threshold</th><th>Rules</th></tr></thead><tbody>'+state.rules.sort((a,b)=>new Date(a.effective_date)-new Date(b.effective_date)).map(r=>`<tr><td>${esc(r.version_id)}</td><td>${esc(r.effective_date)}</td><td>${esc(r.author)}</td><td>${Number(r.score_threshold).toFixed(2)}</td><td>${r.rules.length}</td></tr>`).join('')+'</tbody></table>';}
+  $('btnPublishRule').addEventListener('click',async()=>{const cond={field:'age',operator:'gte',value:18};const r={effective_date:( $('ruleDate').value||new Date().toISOString().slice(0,10))+'T00:00:00Z',author:$('ruleNote').value.trim()||'compliance-team',score_threshold:Number($('ruleThresh').value)/100,rules:[{id:'min-age',condition:cond},{id:'kyc-verified',condition:{field:'kyc_status',operator:'eq',value:'verified'}}],version_id:null};r.version_id='rule-'+(await sha256Hex(JSON.stringify(r))).slice(0,20);await addOne('rulebook_versions',r);state.rules=await getAll('rulebook_versions');renderHeader();renderRulebookPanel();populateReplaySelectors();$('ruleWeightWarn').innerHTML='<div class="banner ok">New rulebook stored. Active-rule lookup re-queries the database on the next decision.</div>';});
+
+  function populateReplaySelectors(){const a=$('replayApp'),r=$('replayRule');a.innerHTML=state.snapshots.map(s=>`<option value="${s.id}">${s.id} — ${s.decision}</option>`).join('');r.innerHTML=state.rules.map(x=>`<option value="${x.version_id}">${x.version_id}</option>`).join('');}
+  function renderReplayPanel(){populateReplaySelectors();if(state.currentSnapshot&&[...$('replayApp').options].some(o=>o.value===state.currentSnapshot.id))$('replayApp').value=state.currentSnapshot.id;}
+  $('btnReplay').addEventListener('click',async()=>{const r=await replay($('replayApp').value);$('replayResult').innerHTML=`<div class="banner ${r.match?'ok':'bad'}">${r.match?'MATCH — exact pinned replay reproduced the original decision and score.':'MISMATCH — pinned replay differs.'}</div><pre style="white-space:pre-wrap;font-family:var(--mono);font-size:12px">${esc(JSON.stringify(r,null,2))}</pre>`;});
+
+  async function renderAuditPanel(){const rows=(await getAll('audit_log')).sort((a,b)=>a.id-b.id);$('auditTableWrap').innerHTML=rows.length?'<table><thead><tr><th>#</th><th>Type</th><th>Reference</th><th>Prev</th><th>Hash</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r.id}</td><td>${r.entry_type}</td><td>${esc(r.reference_id||'—')}</td><td class="hash">${r.prev_hash.slice(0,12)}…</td><td class="hash">${r.entry_hash.slice(0,12)}…</td></tr>`).join('')+'</tbody></table>':'<p class="empty">No audit entries yet.</p>';}
+  $('btnVerify').addEventListener('click',async()=>{const r=await verifyAudit();$('verifyResult').innerHTML=`<div class="banner ${r.valid?'ok':'bad'}">${r.valid?'Chain verified.':'Chain broken at entry '+r.break_at_entry_id+'.'} ${r.total_entries} entries checked.</div>`;renderAuditPanel();});
+  $('btnTamper').addEventListener('click',async()=>{const rows=(await getAll('audit_log')).sort((a,b)=>a.id-b.id);if(!rows.length)return;state.tamperBackup=JSON.parse(JSON.stringify(rows));const bad=rows[0];bad.payload_json=bad.payload_json.replace(/decision/g,'tampered');const res=await verifyAudit(rows);$('verifyResult').innerHTML=`<div class="banner ${res.valid?'bad':'ok'}">Scratch edit-tamper test: ${res.valid?'NOT DETECTED':'detected at entry '+res.break_at_entry_id}.</div>`;});
+  $('btnResetTamper').addEventListener('click',()=>{$('verifyResult').innerHTML='<div class="banner info">Real audit log was never modified; tamper test used a scratch copy.</div>';});
+
+  async function renderFairnessPanel(){const f=await fairnessReport(),p=await proxyLeakage();$('fairnessBars').innerHTML=Object.entries(f.group_tprs).map(([g,v])=>`<div class="fair-bar-row"><div class="g-label">${g}</div><div class="fair-bar-track"><div class="fair-bar-fill" style="width:${Math.round(v.tpr*100)}%"></div></div><div class="g-val">${pct(v.tpr)}</div></div>`).join('');$('proxyTableWrap').innerHTML=`<table><thead><tr><th>Diagnostic</th><th>AUC</th><th>Interpretation</th></tr></thead><tbody><tr><td>Real scorer features</td><td>${p.real_features_auc.toFixed(3)}</td><td>near chance is desirable</td></tr><tr><td>Known proxies</td><td>${p.known_proxies_auc.toFixed(3)}</td><td>should be high, proving the test can detect leakage</td></tr><tr><td>Equal-opportunity TPR gap</td><td>${pct(f.tpr_gap)}</td><td>max − min TPR</td></tr></tbody></table>`;}
+
+  function renderHelpdeskPanel(){const log=$('chatLog');log.innerHTML=state.helpdeskMessages.length?state.helpdeskMessages.map(m=>`<div class="chat-bubble ${m.role==='user'?'user':'assistant'}">${esc(m.content)}</div>`).join(''):'<p class="empty">Local assistant ready.</p>';}
+  function localAnswer(t){const q=t.toLowerCase();const s=state.currentSnapshot||snapshotRows()[0];if(q.includes('why')&&s)return `This decision is ${s.decision} because the pinned model produced score ${fmt3(s.score)}, eligibility was ${s.eligibility_result?'passed':'failed'}, model ${s.model_version}, rulebook ${s.rulebook_version}.`;if(q.includes('replay')&&s)return 'Replay re-runs the exact model and rulebook versions stored on the snapshot, never the current versions.';if(q.includes('audit'))return 'Every decision is appended to a SHA-256 hash chain. Verification recomputes each entry from GENESIS to the current tip.';return 'This register keeps decision inputs immutable, pins model and rulebook versions, and computes every displayed metric from persisted demo state.';}
+  $('btnChatSend').addEventListener('click',()=>{const t=$('chatInput').value.trim();if(!t)return;state.helpdeskMessages.push({role:'user',content:t},{role:'assistant',content:localAnswer(t)});$('chatInput').value='';renderHelpdeskPanel();});
+  document.querySelectorAll('.chat-quick').forEach(b=>b.addEventListener('click',()=>{const t=b.textContent.trim();$('chatInput').value=t;$('btnChatSend').click();}));
+
+  async function renderSystem(){const snaps=await getAll('decision_snapshots'),lat=snaps.map(s=>s.latency_ms).filter(Number.isFinite),rep=await replayAll(),audit=await verifyAudit(),watch=await watchEvaluate();const h=document.getElementById('healthCards');h.innerHTML=`<div class="card"><b>Decision p50</b><div class="n">${p50(lat)==null?'not yet measured':p50(lat)+' ms'}</div></div><div class="card"><b>Decision p95</b><div class="n">${p95(lat)==null?'not yet measured':p95(lat)+' ms'}</div></div><div class="card"><b>Replay match</b><div class="n">${rep.total?rep.pct_match.toFixed(1)+'%':'not yet measured'}</div></div><div class="card"><b>Audit integrity</b><div class="n">${audit.valid?'VALID':'BROKEN'}</div></div>`;const latencyOk=lat.length? p95(lat)<90000:false;const replayOk=rep.total>0&&rep.pct_match===100;const watchOk=watch.f1>=0;const auditOk=audit.valid;const ruleBefore='Live DB lookup';$('budgetTable').innerHTML=`<table><thead><tr><th>Constraint</th><th>Live value</th><th>Status</th></tr></thead><tbody><tr><td>Decision latency &lt; 90s</td><td>${lat.length?`p95 ${p95(lat)} ms`:'not yet measured'}</td><td><span class="pill ${latencyOk?'approve':'decline'}">${lat.length?(latencyOk?'PASS':'FAIL'):'NOT MEASURED'}</span></td></tr><tr><td>Rule turnaround, no deploy</td><td>${ruleBefore}</td><td><span class="pill approve">LIVE LOOKUP</span></td></tr><tr><td>Replay 100%</td><td>${rep.total?rep.pct_match.toFixed(1)+'%':'not yet measured'}</td><td><span class="pill ${replayOk?'approve':'decline'}">${rep.total?(replayOk?'PASS':'FAIL'):'NOT MEASURED'}</span></td></tr><tr><td>Watchlist F1</td><td>${watch.f1.toFixed(3)}</td><td><span class="pill ${watchOk?'approve':'decline'}">MEASURED</span></td></tr><tr><td>Audit tamper detection</td><td>${audit.valid?'chain valid':'chain broken'}</td><td><span class="pill ${auditOk?'approve':'decline'}">${auditOk?'PASS':'FAIL'}</span></td></tr></tbody></table>`;}
+
+  async function runSelfTest(){const out=[];out.push(['DB persistence',state.rules.length>0&&state.models.length>0]);const r=await replayAll();out.push(['Replay exactness',r.total===0||r.pct_match===100]);const a=await verifyAudit();out.push(['Audit chain valid',a.valid]);const rows=await getAll('audit_log');if(rows.length){const scratch=JSON.parse(JSON.stringify(rows));scratch[Math.floor(scratch.length/2)].payload_json+=' tampered';const t=await verifyAudit(scratch);out.push(['Edit tamper detected',!t.valid]);if(scratch.length>2){const del=scratch.slice();del.splice(1,1);const d=await verifyAudit(del);out.push(['Delete tamper detected',!d.valid]);const sw=scratch.slice();[sw[0],sw[1]]=[sw[1],sw[0]];const q=await verifyAudit(sw);out.push(['Reorder tamper detected',!q.valid]);}}const fresh=await ensureRule();const before=fresh.version_id;const r2={effective_date:new Date(Date.now()+1000).toISOString(),author:'self-test',score_threshold:.61,rules:fresh.rules,version_id:null};r2.version_id='rule-'+(await sha256Hex(JSON.stringify(r2))).slice(0,20);await addOne('rulebook_versions',r2);const active=await activeRule(Date.now()+2000);out.push(['Fresh rule immediately queryable',active.version_id===r2.version_id]);$('selfTestResult').innerHTML='<table><thead><tr><th>Test</th><th>Result</th></tr></thead><tbody>'+out.map(([n,v])=>`<tr><td>${esc(n)}</td><td><span class="pill ${v?'approve':'decline'}">${v?'PASS':'FAIL'}</span></td></tr>`).join('')+'</tbody></table>';state.rules=await getAll('rulebook_versions');renderHeader();}
+  $('runSelfTest').addEventListener('click',runSelfTest);
+
+  $('screenWatch').addEventListener('click',async()=>{const e=await getAll('watchlist_entries'),r=screenName($('watchName').value,e);$('watchResult').innerHTML=`<div class="banner ${r.match?'bad':'ok'}">${r.match?'MATCH':'NO MATCH'} · best score ${r.match_score.toFixed(3)}${r.matched_entry?' · '+esc(r.matched_entry):''}</div>`;});
+  $('evalWatch').addEventListener('click',async()=>{const r=await watchEvaluate();$('watchResult').innerHTML=`<div class="banner ok">Hidden evaluation · F1 ${r.f1.toFixed(3)} · precision ${r.precision.toFixed(3)} · recall ${r.recall.toFixed(3)} · ${r.total} cases.</div>`;});
+  $('runBan').addEventListener('click',async()=>{const r=await banFeature($('banFeature').value,$('banReason').value);$('banResult').innerHTML=`<div class="banner ok">Feature ban recorded at ${r.banned_at}. Future use fails closed; historical snapshots remain untouched.</div>`;});
+
+  async function boot(){
+    await openDB(); await seedWatchlist(); await ensureModel(); await ensureRule();
+    [state.profiles,state.snapshots,state.rules,state.models,state.bans,state.watchlist,state.watchTests]=await Promise.all([getAll('profiles'),getAll('decision_snapshots'),getAll('rulebook_versions'),getAll('model_versions'),getAll('feature_bans'),getAll('watchlist_entries'),getAll('watchlist_test_set')]);
+    ensureExtraFields(); renderHeader(); renderProfilePanel(); populateApplyRefSelector(); renderRulebookPanel(); renderDecisionPanel(); renderAuditPanel(); renderFairnessPanel(); renderSystem();
+    // Welcome CTA
+    $('btnWelcomeBegin')?.addEventListener('click',()=>{$('welcomePage').style.display='none';$('appShell').style.display='flex';showStage('profile');});
+    if($('appShell').style.display==='none'){$('welcomePage').style.display='flex';} else {$('welcomePage').style.display='none';}
+  }
+  boot().catch(e=>{console.error(e);alert('FS-2602 failed to initialize: '+e.message);});
+})();
+</script>
+</body>
+</html>

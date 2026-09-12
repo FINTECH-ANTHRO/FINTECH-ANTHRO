@@ -1,0 +1,1932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Decision Register — FS-2602</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F7F5F0;
+    --paper-raised:#FCFBF8;
+    --ink:#1B2430;
+    --ink-soft:#5C6670;
+    --ink-faint:#8890A0;
+    --rule:#DDD7C8;
+    --rule-strong:#A79E8B;
+    --stamp:#8B1E3F;
+    --stamp-deep:#6E1730;
+    --approve:#2F5233;
+    --approve-bg:#E7EEE5;
+    --decline:#7A2E2E;
+    --decline-bg:#F3E6E2;
+    --warn:#8A6D1D;
+    --warn-bg:#F5EDD9;
+    --shadow-1: 0 1px 2px rgba(27,36,48,0.05), 0 2px 10px rgba(27,36,48,0.04);
+    --shadow-2: 0 4px 18px rgba(27,36,48,0.08);
+    --tint-hover: rgba(139,30,63,0.07);
+    --tint-select: rgba(139,30,63,0.18);
+    --serif: 'Newsreader', Georgia, serif;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  }
+
+  [data-theme="dark"]{
+    --paper:#15171B;
+    --paper-raised:#1D2025;
+    --ink:#EDEAE0;
+    --ink-soft:#9BA0A9;
+    --ink-faint:#666C76;
+    --rule:#2A2E35;
+    --rule-strong:#454B54;
+    --stamp:#D65C7C;
+    --stamp-deep:#ED84A0;
+    --approve:#7FC98C;
+    --approve-bg:#1E2E21;
+    --decline:#E38888;
+    --decline-bg:#332020;
+    --warn:#E3C468;
+    --warn-bg:#332A12;
+    --shadow-1: 0 1px 2px rgba(0,0,0,0.35), 0 2px 10px rgba(0,0,0,0.25);
+    --shadow-2: 0 4px 18px rgba(0,0,0,0.45);
+    --tint-hover: rgba(214,92,124,0.13);
+    --tint-select: rgba(214,92,124,0.30);
+  }
+
+  *{ box-sizing:border-box; }
+
+  ::selection{ background:var(--tint-select); }
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    transition:background-color .2s ease, color .2s ease;
+  }
+
+  a{ color:var(--stamp); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px; }
+  a:hover{ color:var(--stamp-deep); }
+
+  /* ---------- shell ---------- */
+  .shell{
+    display:flex;
+    min-height:100vh;
+  }
+
+  .rail{
+    width:246px;
+    flex-shrink:0;
+    background:var(--paper-raised);
+    border-right:1px solid var(--rule);
+    padding:30px 0 22px;
+    display:flex;
+    flex-direction:column;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+
+  .brand{
+    padding:0 24px 20px;
+    border-bottom:1px solid var(--rule);
+    margin-bottom:14px;
+  }
+  .brand .mark{
+    width:30px; height:3px;
+    background:var(--stamp);
+    margin-bottom:14px;
+  }
+  .brand h1{
+    font-family:var(--serif);
+    font-size:19px;
+    font-weight:700;
+    margin:0 0 7px;
+    letter-spacing:0.1px;
+    line-height:1.25;
+  }
+  .brand p{
+    margin:0;
+    font-size:12px;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+
+  nav.stages{ display:flex; flex-direction:column; padding:6px 12px; gap:1px; }
+  .stage-btn{
+    display:flex;
+    align-items:baseline;
+    gap:11px;
+    width:100%;
+    text-align:left;
+    background:none;
+    border:none;
+    border-radius:3px;
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background-color .12s ease, color .12s ease;
+  }
+  .stage-btn .num{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-faint);
+    width:15px;
+    flex-shrink:0;
+    transition:color .12s ease;
+  }
+  .stage-btn:hover{ background:var(--tint-hover); color:var(--ink); }
+  .stage-btn.active{
+    background:var(--stamp);
+    color:#fff;
+    font-weight:500;
+  }
+  .stage-btn.active .num{ color:rgba(255,255,255,0.65); }
+  .stage-btn:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+
+  .rail-foot{
+    margin-top:auto;
+    padding:18px 24px 0;
+    border-top:1px solid var(--rule);
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+
+  /* ---------- main ---------- */
+  main{
+    flex:1;
+    min-width:0;
+    padding:36px 44px 64px;
+    max-width:1080px;
+  }
+
+  .topline{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:18px;
+    margin-bottom:30px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--rule);
+  }
+  .topline h2{
+    font-family:var(--serif);
+    font-size:29px;
+    font-weight:700;
+    margin:0 0 10px;
+    padding-bottom:8px;
+    letter-spacing:-0.2px;
+    position:relative;
+  }
+  .topline h2::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:48px;
+    height:3px;
+    background:var(--stamp);
+    border-radius:1px;
+  }
+  .topline .sub{
+    color:var(--ink-soft);
+    font-size:13.5px;
+    max-width:560px;
+  }
+  .stat-row{ display:flex; gap:0; }
+  .stat{
+    text-align:right;
+    padding:0 20px;
+    border-left:1px solid var(--rule);
+  }
+  .stat:first-child{ border-left:none; padding-left:0; }
+  .stat .n{ font-family:var(--mono); font-size:23px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.15; }
+  .stat .l{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    box-shadow:var(--shadow-1);
+    border-radius:4px;
+    padding:26px 28px;
+    margin-bottom:22px;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+  .card h3{
+    font-family:var(--serif);
+    font-size:17px;
+    font-weight:700;
+    line-height:1.3;
+    margin:0 0 10px;
+    padding-bottom:6px;
+    position:relative;
+  }
+  .card h3::after{
+    content:"";
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:30px;
+    height:2px;
+    background:var(--stamp);
+    border-radius:1px;
+  }
+  .card .hint{
+    color:var(--ink-soft);
+    font-size:12.5px;
+    margin:0 0 20px;
+    max-width:640px;
+    line-height:1.55;
+  }
+
+  .field{ margin-bottom:18px; max-width:520px; }
+  .field label{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:13px;
+    font-weight:500;
+    margin-bottom:6px;
+  }
+  .field label .val{ color:var(--stamp); font-variant-numeric:tabular-nums; font-weight:600; flex-shrink:0; }
+  .field .sub-help{ font-size:11.5px; color:var(--ink-faint); margin-top:5px; line-height:1.45; }
+  .field input[type="text"],
+  .field select,
+  .field input[type="date"]{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  .field input[type="text"]:hover,
+  .field select:hover,
+  .field input[type="date"]:hover{ border-color:var(--stamp); }
+
+  .field input[type="range"]{
+    width:100%;
+    accent-color:var(--stamp);
+    height:20px;
+    cursor:pointer;
+  }
+  .field input[type="number"].num-input{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+    transition:border-color .12s ease;
+  }
+  .field input[type="number"].num-input:hover{ border-color:var(--stamp); }
+  .field input[type="number"].num-input:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+  .meter{
+    margin-top:10px;
+    background:var(--rule);
+    height:7px;
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .meter-fill{
+    background:var(--stamp);
+    height:100%;
+    border-radius:4px;
+    width:0%;
+    transition:width .12s ease;
+  }
+  .meter-val{
+    margin-top:6px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--stamp);
+    font-variant-numeric:tabular-nums;
+  }
+  .field input:focus-visible, .field select:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+  .field textarea{
+    width:100%;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:9px 11px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    min-height:74px;
+    transition:border-color .12s ease;
+  }
+  .field textarea:hover{ border-color:var(--stamp); }
+  .field textarea:focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:1px;
+    border-color:var(--stamp);
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:0 30px; }
+
+  button{ border-radius:3px; }
+  button.primary{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    padding:11px 22px;
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:500;
+    cursor:pointer;
+    transition:background-color .12s ease, transform .06s ease;
+  }
+  button.primary:hover{ background:var(--stamp); }
+  button.primary:active{ transform:translateY(1px); }
+  button.primary:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  button.secondary{
+    background:var(--paper-raised);
+    border:1px solid var(--rule-strong);
+    color:var(--ink);
+    padding:10px 20px;
+    font-family:var(--sans);
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:border-color .12s ease, color .12s ease;
+  }
+  button.secondary:hover{ border-color:var(--stamp); color:var(--stamp); }
+  button.secondary:active{ transform:translateY(1px); }
+  button.secondary:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  button:disabled{ opacity:0.45; cursor:not-allowed; transform:none; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  th, td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--rule);
+  }
+  th{
+    font-weight:500;
+    color:var(--ink-soft);
+    font-size:11px;
+    letter-spacing:0.2px;
+    border-bottom:1px solid var(--rule-strong);
+  }
+  tbody tr:nth-child(even) td{ background:rgba(199,190,168,0.10); }
+  tr.row-link{ cursor:pointer; }
+  tr.row-link:hover td{ background:var(--tint-hover); }
+
+  .pill{
+    display:inline-block;
+    padding:2px 10px;
+    border-radius:20px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+    border:1px solid;
+  }
+  .pill.approve{ color:var(--approve); background:var(--approve-bg); border-color:var(--approve); }
+  .pill.decline{ color:var(--decline); background:var(--decline-bg); border-color:var(--decline); }
+
+  .empty{
+    color:var(--ink-faint);
+    font-size:13px;
+    padding:20px 0;
+    font-style:italic;
+  }
+
+  /* ---------- decision stamp ---------- */
+  .stamp-wrap{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+    padding:8px 0 20px;
+  }
+  .stamp{
+    font-family:var(--mono);
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    border:3px solid;
+    border-radius:3px;
+    padding:10px 22px;
+    transform:rotate(-3deg);
+    display:inline-block;
+    box-shadow:0 3px 0 rgba(27,36,48,0.06);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .stamp{ animation:stamp-in 0.28s ease-out; }
+  }
+  @keyframes stamp-in{
+    from{ transform:rotate(-3deg) scale(1.35); opacity:0; }
+    to{ transform:rotate(-3deg) scale(1); opacity:1; }
+  }
+  .stamp.approve{ color:var(--approve); border-color:var(--approve); }
+  .stamp.decline{ color:var(--decline); border-color:var(--decline); }
+  .stamp-meta{ font-size:13px; color:var(--ink-soft); }
+  .stamp-meta div{ margin-bottom:4px; }
+  .stamp-meta b{ color:var(--ink); font-weight:600; }
+
+  .reason-list{ list-style:none; margin:0; padding:0; }
+  .reason-list li{
+    padding:10px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:13.5px;
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .reason-list li:last-child{ border-bottom:none; }
+  .reason-list .weight{ color:var(--ink-faint); font-size:12px; white-space:nowrap; }
+
+  .hash{ font-size:11.5px; color:var(--ink-faint); word-break:break-all; font-family:var(--mono); }
+  .hash.ok{ color:var(--approve); }
+  .hash.bad{ color:var(--decline); font-weight:600; }
+
+  .banner{
+    padding:12px 15px;
+    font-size:13px;
+    border:1px solid;
+    border-radius:3px;
+    margin-bottom:16px;
+    line-height:1.5;
+  }
+  .banner.ok{ background:var(--approve-bg); border-color:var(--approve); color:var(--approve); }
+  .banner.bad{ background:var(--decline-bg); border-color:var(--decline); color:var(--decline); }
+  .banner.info{ background:var(--warn-bg); border-color:var(--warn); color:var(--warn); }
+
+  .fair-bar-row{ display:flex; align-items:center; gap:12px; margin-bottom:11px; }
+  .fair-bar-row .g-label{ width:80px; font-size:13px; font-weight:500; }
+  .fair-bar-track{ flex:1; background:var(--rule); height:14px; border-radius:7px; position:relative; overflow:hidden; }
+  .fair-bar-fill{ background:var(--stamp); height:100%; border-radius:7px; transition:width .3s ease; }
+  .fair-bar-row .g-val{ width:48px; text-align:right; font-size:12.5px; color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+
+  /* ---------- profile ---------- */
+  .id-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono);
+    font-size:11.5px; font-weight:600; color:var(--ink-soft);
+    background:rgba(199,190,168,0.18);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:2px 8px;
+  }
+
+  /* ---------- helpdesk chat ---------- */
+  .chat-log{
+    max-height:380px;
+    min-height:120px;
+    overflow-y:auto;
+    border:1px solid var(--rule);
+    border-radius:4px;
+    background:var(--paper);
+    padding:16px;
+    margin:4px 0 12px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .chat-bubble{
+    max-width:80%;
+    padding:10px 13px;
+    border-radius:12px;
+    font-size:13.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .chat-bubble.user{
+    align-self:flex-end;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom-right-radius:3px;
+  }
+  .chat-bubble.assistant{
+    align-self:flex-start;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-bottom-left-radius:3px;
+  }
+  .chat-typing{ font-size:12px; color:var(--ink-faint); font-style:italic; margin:-4px 0 12px; }
+  .chat-input-row{ display:flex; gap:10px; align-items:flex-end; }
+  .chat-input-row textarea{
+    flex:1;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--paper);
+    padding:10px 12px;
+    font-family:var(--sans);
+    font-size:14px;
+    color:var(--ink);
+    resize:vertical;
+    min-height:46px;
+    max-height:160px;
+    transition:border-color .12s ease;
+  }
+  .chat-input-row textarea:hover{ border-color:var(--stamp); }
+  .chat-input-row textarea:focus-visible{ outline:2px solid var(--stamp); outline-offset:1px; border-color:var(--stamp); }
+  .chat-quick{ font-size:12.5px !important; padding:8px 14px !important; }
+
+  .stage-panel{ display:none; }
+  .stage-panel.active{ display:block; }
+  @media (prefers-reduced-motion: no-preference){
+    .stage-panel.active{ animation:panel-in 0.18s ease-out; }
+  }
+  @keyframes panel-in{
+    from{ opacity:0; transform:translateY(4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  ::-webkit-scrollbar{ height:8px; width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--rule-strong); border-radius:4px; }
+
+  /* ---------- google auth ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(27,36,48,0.45);
+    align-items:center; justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .modal-box{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow-2);
+    width:340px;
+    max-width:100%;
+    padding:22px;
+  }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--serif); font-size:16px; font-weight:700;
+    margin-bottom:6px;
+  }
+  .modal-head button{
+    background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:15px; padding:2px 6px;
+  }
+  .modal-head button:hover{ color:var(--stamp); }
+  .modal-sub{ font-size:12px; color:var(--ink-soft); margin:0 0 16px; line-height:1.5; }
+  .google-account-item{
+    display:flex; align-items:center; gap:12px;
+    width:100%;
+    padding:10px 8px;
+    border:none; background:none;
+    border-radius:4px;
+    cursor:pointer;
+    text-align:left;
+    font-family:var(--sans);
+    transition:background-color .12s ease;
+  }
+  .google-account-item:hover{ background:var(--tint-hover); }
+  .google-avatar{
+    width:32px; height:32px; border-radius:50%;
+    background:var(--stamp); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:14px; flex-shrink:0;
+  }
+  .google-acc-name{ display:block; font-size:13.5px; font-weight:500; color:var(--ink); }
+  .google-acc-email{ display:block; font-size:12px; color:var(--ink-soft); }
+  .btn-google{
+    display:inline-flex; align-items:center; gap:9px;
+  }
+
+  /* ---------- welcome page ---------- */
+  #appShell{ display:none; }
+
+  .welcome-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:48px 24px;
+    background:var(--paper);
+    transition:background-color .2s ease;
+  }
+  .welcome-card{
+    max-width:560px;
+    width:100%;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    box-shadow:var(--shadow-2);
+    padding:46px 42px 40px;
+    transition:background-color .2s ease, border-color .2s ease;
+  }
+  .welcome-card .mark{ width:36px; height:3px; background:var(--stamp); margin-bottom:18px; }
+  .welcome-kicker{
+    margin:0 0 8px;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.8px;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-weight:600;
+  }
+  .welcome-title{
+    font-family:var(--serif);
+    font-size:34px;
+    font-weight:700;
+    margin:0 0 14px;
+    letter-spacing:-0.3px;
+    line-height:1.15;
+  }
+  .welcome-lede{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin:0 0 28px;
+    max-width:480px;
+  }
+  .welcome-steps{
+    list-style:none;
+    margin:0 0 30px;
+    padding:0;
+    border-top:1px solid var(--rule);
+  }
+  .welcome-steps li{
+    display:flex;
+    gap:14px;
+    align-items:baseline;
+    padding:11px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:13.5px;
+    color:var(--ink);
+  }
+  .welcome-steps .num{
+    font-family:var(--mono);
+    font-size:12px;
+    font-weight:500;
+    color:var(--ink-faint);
+    width:18px;
+    flex-shrink:0;
+  }
+  .welcome-begin{ width:100%; text-align:center; font-size:14.5px; padding:13px 22px; }
+  .welcome-foot{
+    margin:22px 0 0;
+    font-size:11.5px;
+    color:var(--ink-faint);
+    line-height:1.55;
+  }
+  .welcome-quote{
+    margin:24px 0 0;
+    padding:15px 20px;
+    background:var(--tint-hover);
+    border-left:3px solid var(--stamp);
+    border-radius:0 4px 4px 0;
+    font-family:var(--serif);
+    font-style:italic;
+    font-weight:500;
+    font-size:16px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .welcome-credit{
+    margin:18px 0 0;
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:13px;
+    color:var(--ink-faint);
+  }
+  .welcome-credit .credit-brand{
+    font-style:normal;
+    font-weight:600;
+    letter-spacing:1.4px;
+    color:var(--ink-soft);
+  }
+  @media (max-width:560px){
+    .welcome-card{ padding:34px 26px 28px; }
+    .welcome-title{ font-size:26px; }
+  }
+
+  /* ---------- heading emphasis: profile, apply, decision ---------- */
+  #pageTitle.title-emph{ font-weight:700; font-style:italic; }
+  #panel-profile h3,
+  #panel-apply h3,
+  #panel-decision h3{ font-weight:700; font-style:italic; }
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{
+    position:fixed;
+    top:18px;
+    right:22px;
+    z-index:60;
+    height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:0 16px 0 13px;
+    background:var(--paper-raised);
+    border:1px solid var(--rule-strong);
+    border-radius:20px;
+    cursor:pointer;
+    box-shadow:var(--shadow-1);
+    transition:border-color .12s ease, background-color .2s ease, transform .06s ease;
+  }
+  .theme-toggle:hover{ border-color:var(--stamp); }
+  .theme-toggle:active{ transform:translateY(1px); }
+  .theme-toggle:focus-visible{ outline:2px solid var(--stamp); outline-offset:2px; }
+  .theme-toggle svg{ width:17px; height:17px; display:block; flex-shrink:0; }
+  .theme-toggle .icon-sun{ display:none; color:var(--warn); }
+  .theme-toggle .icon-moon{ display:block; color:var(--ink-soft); }
+  [data-theme="dark"] .theme-toggle .icon-sun{ display:block; }
+  [data-theme="dark"] .theme-toggle .icon-moon{ display:none; }
+  .theme-toggle .mode-label{
+    font-family:var(--sans);
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:0.2px;
+    color:var(--ink-soft);
+  }
+  .theme-toggle .mode-label.mode-light{ display:none; }
+  .theme-toggle .mode-label.mode-dark{ display:inline; }
+  [data-theme="dark"] .theme-toggle .mode-label.mode-light{ display:inline; }
+  [data-theme="dark"] .theme-toggle .mode-label.mode-dark{ display:none; }
+
+  @media (max-width: 760px){
+    .shell{ flex-direction:column; }
+    .rail{ width:100%; border-right:none; border-bottom:1px solid var(--rule); flex-direction:row; overflow-x:auto; padding:14px 0; }
+    .brand, .rail-foot{ display:none; }
+    nav.stages{ flex-direction:row; padding:0 12px; }
+    .stage-btn{ white-space:nowrap; }
+    main{ padding:24px 18px 50px; }
+    .grid-2{ grid-template-columns:1fr; }
+    .topline{ align-items:flex-start; }
+    .stat{ padding:0 14px; }
+    .theme-toggle{ top:10px; right:10px; height:32px; padding:0 12px 0 10px; }
+    .theme-toggle svg{ width:14px; height:14px; }
+    .theme-toggle .mode-label{ font-size:11.5px; }
+  }
+</style>
+<script>
+  (function(){
+    try {
+      var saved = localStorage.getItem('fs2602-theme');
+      var theme = saved || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch(e) {}
+  })();
+</script>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"></circle><line x1="12" y1="1.5" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22.5"></line><line x1="4.2" y1="4.2" x2="5.9" y2="5.9"></line><line x1="18.1" y1="18.1" x2="19.8" y2="19.8"></line><line x1="1.5" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22.5" y2="12"></line><line x1="4.2" y1="19.8" x2="5.9" y2="18.1"></line><line x1="18.1" y1="5.9" x2="19.8" y2="4.2"></line></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.4A8.5 8.5 0 1 1 9.6 3.5a7 7 0 0 0 10.9 10.9z"></path></svg>
+  <span class="mode-label mode-light">Light</span>
+  <span class="mode-label mode-dark">Dark</span>
+</button>
+
+<div class="welcome-page" id="welcomePage">
+  <div class="welcome-card">
+    <div class="mark" aria-hidden="true"></div>
+    <p class="welcome-kicker">FS-2602 starter build</p>
+    <h1 class="welcome-title">Credit Decision Register</h1>
+    <p class="welcome-lede">A reproducible, thin-file credit-decisioning workbench. Score alternate-data signals, publish versioned rules, replay past decisions, and check approval-rate fairness — all running in this page.</p>
+    <ol class="welcome-steps">
+      <li><span class="num">01</span> <b><i>Profile</i></b> — save identity and contact details</li>
+      <li><span class="num">02</span> <b><i>Apply</i></b> — submit the alternate-data signals</li>
+      <li><span class="num">03</span> <b><i>Decision</i></b> — see the stamp and the reasons behind it</li>
+      <li><span class="num">04</span> Rulebook, Audit trail, Replay, Fairness, and Helpdesk — explore the rest</li>
+    </ol>
+    <button class="primary welcome-begin" id="btnWelcomeBegin">Begin with your profile →</button>
+    <p class="welcome-foot">Scoring, the audit log, and replay all run entirely in this page. Helpdesk chat is the one exception — it calls the Anthropic API live from your browser.</p>
+    <blockquote class="welcome-quote">“A Falcon Flies Above The Clouds”</blockquote>
+    <p class="welcome-credit">Presented By <span class="credit-brand">ANTHRO</span></p>
+  </div>
+</div>
+
+<div class="shell" id="appShell">
+
+  <aside class="rail">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <h1>Credit Decision Register</h1>
+      <p>FS-2602 starter build — reproducible thin-file decisioning</p>
+    </div>
+    <nav class="stages" id="stageNav">
+      <button class="stage-btn active" data-stage="profile"><span class="num">01</span> Profile</button>
+      <button class="stage-btn" data-stage="apply"><span class="num">02</span> Apply</button>
+      <button class="stage-btn" data-stage="decision"><span class="num">03</span> Decision</button>
+      <button class="stage-btn" data-stage="rulebook"><span class="num">04</span> Rulebook</button>
+      <button class="stage-btn" data-stage="audit"><span class="num">05</span> Audit trail</button>
+      <button class="stage-btn" data-stage="replay"><span class="num">06</span> Replay</button>
+      <button class="stage-btn" data-stage="fairness"><span class="num">07</span> Fairness</button>
+      <button class="stage-btn" data-stage="helpdesk"><span class="num">08</span> Helpdesk</button>
+    </nav>
+    <div class="rail-foot">
+      Scoring, the audit log, and replay all run entirely in this page. Helpdesk chat is the one exception — it calls the Anthropic API live from your browser. See README for what's real vs. stubbed.
+    </div>
+  </aside>
+
+  <main>
+
+    <div class="topline">
+      <div>
+        <h2 id="pageTitle" class="title-emph">Profile</h2>
+        <div class="sub" id="pageSub">Identity and contact details for an applicant, kept separate from the scoring signals in Apply.</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><div class="n" id="statProfiles">0</div><div class="l">applicant profiles</div></div>
+        <div class="stat"><div class="n" id="statCount">0</div><div class="l">decisions on file</div></div>
+        <div class="stat"><div class="n" id="statRule">v1</div><div class="l">active rulebook</div></div>
+      </div>
+    </div>
+
+    <!-- ===================== 01 PROFILE ===================== -->
+    <section class="stage-panel active" id="panel-profile">
+      <div class="card" id="googleAuthCard">
+        <h3>Google account</h3>
+        <p class="hint">Connect a Google account to pull name, email, and phone straight into the profile form below. This is a simulated connection built for the demo — a real integration would need Google's OAuth consent screen and the People/Gmail API called from a backend, which a static page can't do on its own.</p>
+        <div class="btn-row">
+          <button class="secondary btn-google" id="btnGoogleConnect">
+            <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.68 9c0-.593.102-1.17.284-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+            Connect Google Account
+          </button>
+          <button class="secondary" id="btnGoogleDisconnect" style="display:none;">Disconnect</button>
+        </div>
+        <div id="googleAuthStatus" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Look up your data</h3>
+        <p class="hint">Already have an applicant ID from a previous visit? Enter it here to pull up your saved profile and every application on file under that ID.</p>
+        <div class="field" style="max-width:300px;">
+          <label>Applicant ID</label>
+          <input type="text" id="lookupRef" placeholder="APP-1032">
+        </div>
+        <div class="btn-row"><button class="secondary" id="btnLookup">Look up</button></div>
+        <div id="lookupResult" style="margin-top:16px;"></div>
+      </div>
+      <div class="card">
+        <h3>Applicant profile</h3>
+        <p class="hint">Name, contact details, and government ID — separate from Apply's alternate-data signals on purpose. Save a profile to get a unique applicant ID; you'll use that same ID on Apply to submit an application, and to look yourself up here later.</p>
+
+        <div class="field" style="max-width:320px;">
+          <label>Applicant ID</label>
+          <div class="id-chip" id="pRefDisplay" style="font-size:13px; padding:9px 12px; display:block; width:100%;">Assigned automatically when you save</div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="field"><label>Full name</label><input type="text" id="pName" placeholder="e.g. Ananya Rao"></div>
+            <div class="field"><label>Email</label><input type="text" id="pEmail" placeholder="name@example.com"></div>
+            <div class="field"><label>Phone</label><input type="text" id="pPhone" placeholder="+91 98765 43210"></div>
+          </div>
+          <div>
+            <div class="field"><label>Date of birth</label><input type="date" id="pDob"></div>
+            <div class="field">
+              <label>Government ID type</label>
+              <select id="pIdType">
+                <option>Aadhaar</option>
+                <option>PAN</option>
+                <option>Passport</option>
+                <option>Voter ID</option>
+                <option>Driving Licence</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Government ID number</label>
+              <input type="text" id="pIdNumber" placeholder="XXXX XXXX 1234">
+              <div class="sub-help">Shown in full only in this form. Masked everywhere else in the app.</div>
+            </div>
+            <div class="field"><label>Address</label><input type="text" id="pAddress" placeholder="Street, city, state, PIN"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="btnSaveProfile">Save profile</button>
+          <button class="secondary" id="btnClearProfileForm">Clear form</button>
+        </div>
+        <div id="profileSaveMsg" style="margin-top:14px;"></div>
+      </div>
+      <div class="card">
+        <h3>Applicant directory</h3>
+        <p class="hint">Click a row to load that applicant back into the form above for editing.</p>
+        <div id="profileTableWrap"><p class="empty">No applicant profiles on file yet.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 APPLY ===================== -->
+    <section class="stage-panel" id="panel-apply">
+      <div class="card">
+        <h3>New application</h3>
+        <p class="hint">Four alternate-data signals stand in for the "crores of people with no bureau history" case in the brief. Swap these for your team's real feature set later. Other assets is kept for context only and, like Audit group, is never fed into the scorer.</p>
+
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label>Applicant ID</label>
+              <select id="inRef"><option value="">No profiles yet — create one in Profile first</option></select>
+              <div class="sub-help">Select the ID you were given when you saved a profile in Profile. No ID yet? Save a profile first.</div>
+            </div>
+            <div class="field">
+              <label>Audit group</label>
+              <select id="inGroup">
+                <option>Group A</option>
+                <option>Group B</option>
+              </select>
+              <div class="sub-help">For fairness measurement only, never scored. Kept separate from the scorer on purpose — see Fairness for why.</div>
+            </div>
+          </div>
+          <div></div>
+        </div>
+
+        <div class="grid-2">
+          <div>
+            <div class="field">
+              <label>Rent paid on time</label>
+              <input type="number" id="in-rent" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the rent was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-rent"></div></div>
+              <div class="meter-val" id="v-rent">75% · 9 of 12 months</div>
+            </div>
+            <div class="field">
+              <label>Utility bills paid on time</label>
+              <input type="number" id="in-util" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the bill was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-util"></div></div>
+              <div class="meter-val" id="v-util">75% · 9 of 12 months</div>
+            </div>
+            <div class="field">
+              <label>Telecom bills paid on time</label>
+              <input type="number" id="in-tel" class="num-input" min="0" max="12" step="1" value="9" inputmode="numeric">
+              <div class="sub-help">Number of the last 12 months the bill was paid on time.</div>
+              <div class="meter"><div class="meter-fill" id="bar-tel"></div></div>
+              <div class="meter-val" id="v-tel">75% · 9 of 12 months</div>
+            </div>
+          </div>
+          <div>
+            <div class="field">
+              <label>Property / home size</label>
+              <input type="number" id="in-property" class="num-input" min="0" max="5000" step="10" value="900" inputmode="numeric">
+              <div class="meter"><div class="meter-fill" id="bar-property"></div></div>
+              <div class="meter-val" id="v-property">900 sq ft</div>
+              <div class="sub-help">Total carpet/built-up area of any owned home or property, in square feet. Use 0 if the applicant owns none.</div>
+            </div>
+            <div class="field">
+              <label>Other assets <span class="val" style="color:var(--ink-soft); font-weight:400;">(not scored)</span></label>
+              <textarea id="in-assets" rows="3" placeholder="e.g. 2019 Honda City, family motorcycle, no other major assets..."></textarea>
+              <div class="sub-help">Free-text note on vehicles or other assets. Kept on file for context, same as Audit group — never fed into the scorer.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="primary" id="btnScore">Score application</button>
+          <button class="secondary" id="btnSample">Load 6 sample applicants</button>
+        </div>
+        <div id="applyValidation" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 03 DECISION ===================== -->
+    <section class="stage-panel" id="panel-decision">
+      <div class="card" id="decisionCard">
+        <h3>Latest decision</h3>
+        <p class="hint">The stamp, the rulebook version behind it, and — when declined — the top factors in plain language.</p>
+        <div id="decisionBody"><p class="empty">No application scored yet. Go to Apply.</p></div>
+      </div>
+      <div class="card">
+        <h3>All applications</h3>
+        <p class="hint">Click a row to jump to Replay for that applicant.</p>
+        <div id="appsTableWrap"><p class="empty">Nothing on file yet.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 04 RULEBOOK ===================== -->
+    <section class="stage-panel" id="panel-rulebook">
+      <div class="card">
+        <h3>Rule versions</h3>
+        <p class="hint">Rules are data, not code. Every application is scored against whichever version was effective on its scoring date.</p>
+        <div id="rulebookTableWrap"></div>
+      </div>
+      <div class="card">
+        <h3>Publish a new version</h3>
+        <p class="hint">No deployment — this becomes the active rulebook for anything scored from its effective date onward. Weights should sum to roughly 1.0.</p>
+        <div class="grid-2">
+          <div>
+            <div class="field"><label>Effective date</label><input type="date" id="ruleDate" value="2026-09-12"></div>
+            <div class="field"><label>Approval threshold <span class="val" id="v-thresh">0.60</span></label><input type="range" id="ruleThresh" min="0" max="100" value="60"></div>
+            <div class="field"><label>Note</label><input type="text" id="ruleNote" placeholder="e.g. reweighted after H+8 feature ban"></div>
+          </div>
+          <div>
+            <div class="field"><label>Rent weight <span class="val" id="v-w-rent">0.30</span></label><input type="range" id="w-rent" min="0" max="100" value="30"></div>
+            <div class="field"><label>Utility weight <span class="val" id="v-w-util">0.20</span></label><input type="range" id="w-util" min="0" max="100" value="20"></div>
+            <div class="field"><label>Telecom weight <span class="val" id="v-w-tel">0.15</span></label><input type="range" id="w-tel" min="0" max="100" value="15"></div>
+            <div class="field"><label>Property size weight <span class="val" id="v-w-property">0.35</span></label><input type="range" id="w-property" min="0" max="100" value="35"></div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="primary" id="btnPublishRule">Publish new version</button></div>
+        <div id="ruleWeightWarn"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 05 AUDIT ===================== -->
+    <section class="stage-panel" id="panel-audit">
+      <div class="card">
+        <h3>Hash-chained log</h3>
+        <p class="hint">Every scored decision is appended with a SHA-256 hash over its record plus the previous record's hash. Changing anything after the fact breaks the chain from that point forward.</p>
+        <div class="btn-row">
+          <button class="secondary" id="btnVerify">Verify chain integrity</button>
+          <button class="secondary" id="btnTamper">Simulate tampering on record #1</button>
+          <button class="secondary" id="btnResetTamper">Undo tampering</button>
+        </div>
+        <div id="verifyResult" style="margin-top:14px;"></div>
+        <div id="auditTableWrap" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 06 REPLAY ===================== -->
+    <section class="stage-panel" id="panel-replay">
+      <div class="card">
+        <h3>Historical replay</h3>
+        <p class="hint">Pick a past application and a rulebook version. Replaying re-runs the exact same scoring function against the stored inputs — a real submission needs this to return a byte-identical result years later.</p>
+        <div class="grid-2">
+          <div class="field"><label>Applicant</label><select id="replayApp"></select></div>
+          <div class="field"><label>Rulebook version to replay against</label><select id="replayRule"></select></div>
+        </div>
+        <div class="btn-row"><button class="primary" id="btnReplay">Replay decision</button></div>
+        <div id="replayResult" style="margin-top:16px;"></div>
+      </div>
+    </section>
+
+    <!-- ===================== 07 FAIRNESS ===================== -->
+    <section class="stage-panel" id="panel-fairness">
+      <div class="card">
+        <h3>Approval rate by audit group</h3>
+        <p class="hint">This demo measures <b>demographic parity</b> — equal approval rates across groups. It does not check equalized odds (equal error rates against real repayment outcomes). A real submission must state which one it optimizes for and name the population that choice disadvantages.</p>
+        <div id="fairnessBars"><p class="empty">Score some applications first.</p></div>
+      </div>
+      <div class="card">
+        <h3>Proxy check</h3>
+        <p class="hint">Correlation between each scored feature and audit group. A value with large magnitude suggests that feature could be acting as a proxy for group membership even though group was never a model input.</p>
+        <div id="proxyTableWrap"><p class="empty">Score some applications first.</p></div>
+      </div>
+    </section>
+
+    <!-- ===================== 08 HELPDESK ===================== -->
+    <section class="stage-panel" id="panel-helpdesk">
+      <div class="card">
+        <h3>Talk to the helpdesk</h3>
+        <p class="hint">An assistant that can explain how this register scores applications, walk through a specific decision, or point you to the right panel. It only knows what's on file in this session, and never fabricates a credit decision. Calls the Anthropic API live from your browser.</p>
+
+        <div class="field" style="max-width:360px;">
+          <label>Applicant context <span class="val" style="color:var(--ink-soft); font-weight:400;">(optional)</span></label>
+          <select id="helpdeskApplicant"><option value="">General question — no applicant selected</option></select>
+          <div class="sub-help">Pick a reference so the assistant can see that applicant's stored decision.</div>
+        </div>
+
+        <div id="chatLog" class="chat-log"></div>
+        <div id="chatTyping" class="chat-typing" style="display:none;">Assistant is typing…</div>
+
+        <div class="chat-input-row">
+          <textarea id="chatInput" rows="2" placeholder="Ask about a decision, your data on file, or how scoring works…"></textarea>
+          <button class="primary" id="btnChatSend">Send</button>
+        </div>
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="secondary chat-quick" data-prompt="Why might an application get declined in this system?">Why declined?</button>
+          <button class="secondary chat-quick" data-prompt="What data does this register use to score an applicant?">What data is used?</button>
+          <button class="secondary chat-quick" data-prompt="How do I update my profile details?">Update my profile</button>
+        </div>
+        <div id="chatError" style="margin-top:12px;"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="googleModalOverlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>Sign in with Google</span>
+      <button type="button" id="googleModalClose" aria-label="Close">✕</button>
+    </div>
+    <p class="modal-sub">Choose an account to connect. These are demo accounts — no real Google sign-in happens on this page.</p>
+    <div id="googleAccountList"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- deterministic PRNG ---------------- */
+  function mulberry32(a){
+    return function(){
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const rng = mulberry32(20260912);
+
+  /* ---------------- feature labels ---------------- */
+  const FEATURE_LABELS = {
+    rentRegularity: "Rent payment history",
+    utilityRegularity: "Utility bill payments",
+    telecomActivity: "Telecom account activity",
+    propertySize: "Property / home size"
+  };
+  const PROPERTY_SQFT_CAP = 3000; // sqft that normalizes to a feature value of 1.0
+
+  /* ---------------- state ---------------- */
+  let rulebook = [
+    {
+      version: 1,
+      effectiveDate: "2026-01-01",
+      weights: { rentRegularity: 0.30, utilityRegularity: 0.20, telecomActivity: 0.15, propertySize: 0.35 },
+      threshold: 0.60,
+      note: "Initial rulebook."
+    }
+  ];
+  let applications = [];   // {id, ref, group, features, ruleVersion, score, decision, timestamp}
+  let auditLog = [];       // {id, prevHash, hash, ...payload}
+  let nextAppId = 1;
+  let nextProfileId = 1000;
+  let currentProfileRef = null; // ref of the profile currently loaded into the Profile form, or null if unsaved/new
+  let tamperedBackup = null;
+  let profiles = {};       // ref -> {ref, name, email, phone, dob, idType, idNumber, address}
+  let helpdeskMessages = []; // {role, content}
+  function generateProfileId(){ return "APP-" + (nextProfileId++); }
+
+  /* ---------------- scoring ---------------- */
+  function ruleForDate(dateStr){
+    const eligible = rulebook.filter(r => r.effectiveDate <= dateStr);
+    eligible.sort((a,b) => b.effectiveDate.localeCompare(a.effectiveDate) || b.version - a.version);
+    return eligible[0] || rulebook[0];
+  }
+  function ruleByVersion(v){ return rulebook.find(r => r.version === v); }
+
+  function scoreFeatures(features, rule){
+    let s = 0;
+    for (const k in rule.weights) s += (features[k] ?? 0) * rule.weights[k];
+    return Math.round(s * 1000) / 1000;
+  }
+  function decisionForScore(score, rule){ return score >= rule.threshold ? "APPROVE" : "DECLINE"; }
+
+  function adverseReasons(features, rule){
+    const rows = Object.keys(rule.weights).map(k => ({
+      key: k, label: FEATURE_LABELS[k],
+      shortfall: rule.weights[k] * (1 - (features[k] ?? 0))
+    }));
+    rows.sort((a,b) => b.shortfall - a.shortfall);
+    return rows.slice(0,4);
+  }
+
+  /* ---------------- hashing / audit chain ---------------- */
+  async function sha256Hex(str){
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+  }
+  async function appendAudit(payload){
+    const prevHash = auditLog.length ? auditLog[auditLog.length-1].hash : "0".repeat(64);
+    const record = Object.assign({}, payload, { prevHash });
+    const hash = await sha256Hex(JSON.stringify(record));
+    auditLog.push(Object.assign({}, record, { hash }));
+  }
+  async function verifyChain(){
+    let prevHash = "0".repeat(64);
+    const results = [];
+    for (const rec of auditLog){
+      const check = Object.assign({}, rec);
+      delete check.hash;
+      check.prevHash = prevHash;
+      const expected = await sha256Hex(JSON.stringify(check));
+      results.push({ id: rec.id, ok: expected === rec.hash });
+      prevHash = rec.hash;
+    }
+    return results;
+  }
+
+  /* ---------------- fairness ---------------- */
+  function approvalRatesByGroup(){
+    const g = {};
+    applications.forEach(a => {
+      if (!g[a.group]) g[a.group] = { total:0, approved:0 };
+      g[a.group].total++;
+      if (a.decision === "APPROVE") g[a.group].approved++;
+    });
+    return g;
+  }
+  function pearson(xs, ys){
+    const n = xs.length;
+    if (n < 2) return 0;
+    const mx = xs.reduce((a,b)=>a+b,0)/n, my = ys.reduce((a,b)=>a+b,0)/n;
+    let num=0, dx=0, dy=0;
+    for (let i=0;i<n;i++){ num += (xs[i]-mx)*(ys[i]-my); dx += (xs[i]-mx)**2; dy += (ys[i]-my)**2; }
+    const denom = Math.sqrt(dx*dy);
+    return denom === 0 ? 0 : num/denom;
+  }
+  function proxyCorrelations(){
+    if (applications.length < 2) return null;
+    const ybin = applications.map(a => a.group === "Group A" ? 0 : 1);
+    const out = {};
+    Object.keys(FEATURE_LABELS).forEach(k => {
+      out[k] = pearson(applications.map(a => a.features[k]), ybin);
+    });
+    return out;
+  }
+
+  /* ---------------- DOM: navigation ---------------- */
+  const titles = {
+    profile: ["Profile", "Identity and contact details for an applicant, kept separate from the scoring signals in Apply."],
+    apply: ["Apply", "Enter alternate-data signals for a thin-file applicant. Nothing here touches a credit bureau."],
+    decision: ["Decision", "The stamp for the most recent application, and every decision on file."],
+    rulebook: ["Rulebook", "Versioned, effective-dated rules — publish a change without a deployment."],
+    audit: ["Audit trail", "A hash-chained record of every decision. Tamper with one entry and the chain shows it."],
+    replay: ["Replay", "Re-run a past decision against the rulebook that produced it, or a different one."],
+    fairness: ["Fairness", "Approval-rate parity across audit groups, and a proxy-leakage check."],
+    helpdesk: ["Helpdesk", "Chat with an assistant about a specific decision, your data on file, or how the register works."]
+  };
+
+  function showStage(stage){
+    document.querySelectorAll(".stage-panel").forEach(p => p.classList.remove("active"));
+    document.getElementById("panel-" + stage).classList.add("active");
+    document.querySelectorAll(".stage-btn").forEach(b => {
+      const isActive = b.dataset.stage === stage;
+      b.classList.toggle("active", isActive);
+      if (isActive) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    document.getElementById("pageTitle").textContent = titles[stage][0];
+    document.getElementById("pageSub").textContent = titles[stage][1];
+    document.getElementById("pageTitle").classList.toggle("title-emph", ["profile","apply","decision"].includes(stage));
+    if (stage === "profile") renderProfilePanel();
+    if (stage === "apply") populateApplyRefSelector();
+    if (stage === "decision") renderDecisionPanel();
+    if (stage === "rulebook") renderRulebookPanel();
+    if (stage === "audit") renderAuditPanel();
+    if (stage === "replay") renderReplayPanel();
+    if (stage === "fairness") renderFairnessPanel();
+    if (stage === "helpdesk") renderHelpdeskPanel();
+  }
+  document.getElementById("stageNav").addEventListener("click", (e) => {
+    const btn = e.target.closest(".stage-btn");
+    if (btn) showStage(btn.dataset.stage);
+  });
+
+  function refreshHeaderStats(){
+    document.getElementById("statCount").textContent = applications.length;
+    document.getElementById("statProfiles").textContent = Object.keys(profiles).length;
+    const latest = rulebook[rulebook.length-1];
+    document.getElementById("statRule").textContent = "v" + latest.version;
+  }
+
+  /* ---------------- Apply panel wiring ---------------- */
+  function clampFieldInput(el, min, max){
+    let v = parseInt(el.value, 10);
+    if (isNaN(v)) v = min;
+    v = Math.max(min, Math.min(max, v));
+    el.value = v;
+    return v;
+  }
+  const MONTHS_PAID_FIELDS = [
+    ["in-rent","v-rent","bar-rent"],
+    ["in-util","v-util","bar-util"],
+    ["in-tel","v-tel","bar-tel"]
+  ];
+  function refreshMonthsPaidField(id, vid, barid){
+    const v = clampFieldInput(document.getElementById(id), 0, 12);
+    const pct = Math.round((v/12) * 100);
+    document.getElementById(barid).style.width = pct + "%";
+    document.getElementById(vid).textContent = pct + "% · " + v + " of 12 months";
+  }
+  MONTHS_PAID_FIELDS.forEach(([id,vid,barid]) => {
+    const el = document.getElementById(id);
+    el.addEventListener("input", () => refreshMonthsPaidField(id,vid,barid));
+    el.addEventListener("blur", () => refreshMonthsPaidField(id,vid,barid));
+    refreshMonthsPaidField(id,vid,barid);
+  });
+
+  function refreshPropertyField(){
+    const v = clampFieldInput(document.getElementById("in-property"), 0, 5000);
+    const pct = Math.round(Math.min(1, v/PROPERTY_SQFT_CAP) * 100);
+    document.getElementById("bar-property").style.width = pct + "%";
+    document.getElementById("v-property").textContent = v + " sq ft";
+  }
+  ["input","blur"].forEach(evt => document.getElementById("in-property").addEventListener(evt, refreshPropertyField));
+  refreshPropertyField();
+
+  function populateApplyRefSelector(){
+    const sel = document.getElementById("inRef");
+    const current = sel.value;
+    const list = Object.values(profiles);
+    sel.innerHTML = list.length
+      ? ['<option value="">Select an applicant ID…</option>'].concat(
+          list.map(p => `<option value="${p.ref}">${p.ref}${p.name ? " — " + escapeHtml(p.name) : ""}</option>`)
+        ).join("")
+      : '<option value="">No profiles yet — create one in Profile first</option>';
+    if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  }
+
+  function readApplyForm(){
+    const sqft = clampFieldInput(document.getElementById("in-property"), 0, 5000);
+    return {
+      ref: document.getElementById("inRef").value,
+      group: document.getElementById("inGroup").value,
+      propertySqft: sqft,
+      assets: document.getElementById("in-assets").value.trim(),
+      features: {
+        rentRegularity: +document.getElementById("in-rent").value/12,
+        utilityRegularity: +document.getElementById("in-util").value/12,
+        telecomActivity: +document.getElementById("in-tel").value/12,
+        propertySize: Math.min(1, sqft/PROPERTY_SQFT_CAP)
+      }
+    };
+  }
+
+  async function scoreAndStore(app){
+    const today = "2026-09-12"; // event date; swap for a live clock in a real build
+    const rule = ruleForDate(today);
+    const score = scoreFeatures(app.features, rule);
+    const decision = decisionForScore(score, rule);
+    const record = {
+      id: nextAppId++, ref: app.ref, group: app.group, features: app.features,
+      propertySqft: app.propertySqft, assets: app.assets || "",
+      ruleVersion: rule.version, score, decision, timestamp: today
+    };
+    applications.push(record);
+    await appendAudit({ id: record.id, ref: record.ref, ruleVersion: record.ruleVersion, score: record.score, decision: record.decision, timestamp: record.timestamp });
+    refreshHeaderStats();
+    return record;
+  }
+
+  document.getElementById("btnScore").addEventListener("click", async () => {
+    const btn = document.getElementById("btnScore");
+    const validation = document.getElementById("applyValidation");
+    const app = readApplyForm();
+    if (!app.ref){
+      validation.innerHTML = '<div class="banner bad">Select an applicant ID before scoring — save a profile in Profile first if you don\'t have one yet.</div>';
+      return;
+    }
+    validation.innerHTML = "";
+    btn.disabled = true;
+    try {
+      await scoreAndStore(app);
+      showStage("decision");
+    } finally { btn.disabled = false; }
+  });
+
+  document.getElementById("btnSample").addEventListener("click", async () => {
+    const btn = document.getElementById("btnSample");
+    btn.disabled = true;
+    try {
+      for (let i=0; i<6; i++){
+        const group = i % 2 === 0 ? "Group A" : "Group B";
+        const base = group === "Group A" ? 0.15 : 0.0; // deliberate small demo skew so Fairness has something to show
+        const propertySize = clamp01(rng()*0.6 + 0.25 - base*0.2);
+        const feat = {
+          rentRegularity: clamp01(rng()*0.55 + 0.35 + base*0.3),
+          utilityRegularity: clamp01(rng()*0.55 + 0.30),
+          telecomActivity: clamp01(rng()*0.6 + 0.25),
+          propertySize
+        };
+        await scoreAndStore({
+          ref: "APP-" + (2000+i), group, features: feat,
+          propertySqft: Math.round(propertySize * PROPERTY_SQFT_CAP),
+          assets: pick(SAMPLE_ASSETS)
+        });
+        if (!profiles["APP-" + (2000+i)]) profiles["APP-" + (2000+i)] = generateSampleProfile("APP-" + (2000+i));
+      }
+      refreshHeaderStats();
+      renderProfilePanel();
+      populateApplyRefSelector();
+      showStage("decision");
+    } finally { btn.disabled = false; }
+  });
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+  /* ---------------- Profile helpers ---------------- */
+  const SAMPLE_FIRST = ["Ananya","Rohit","Priya","Arjun","Meera","Karthik","Divya","Sanjay","Neha","Vikram","Pooja","Rahul"];
+  const SAMPLE_LAST = ["Rao","Sharma","Iyer","Patel","Nair","Gupta","Reddy","Menon","Verma","Bose"];
+  const SAMPLE_CITY = ["Bengaluru, KA","Pune, MH","Hyderabad, TG","Chennai, TN","Jaipur, RJ","Lucknow, UP"];
+  const SAMPLE_ASSETS = [
+    "Owns a 2018 hatchback, no other major assets on file.",
+    "Family-owned two-wheeler; no other assets on file.",
+    "No vehicles or other assets on file.",
+    "Owns a car and a scooter used for local deliveries.",
+    "Second-hand motorcycle, purchased 2021.",
+    "No additional assets reported."
+  ];
+  const ID_TYPES = ["Aadhaar","PAN","Voter ID","Driving Licence"];
+  function pick(arr){ return arr[Math.floor(rng()*arr.length)]; }
+  function randomDigits(n){ let s=""; for(let i=0;i<n;i++) s+=Math.floor(rng()*10); return s; }
+  function randomLetters(n){ let s=""; for(let i=0;i<n;i++) s+=String.fromCharCode(65+Math.floor(rng()*26)); return s; }
+  function generateSampleProfile(ref){
+    const first = pick(SAMPLE_FIRST), last = pick(SAMPLE_LAST);
+    const idType = pick(ID_TYPES);
+    let idNumber;
+    if (idType === "Aadhaar") idNumber = randomDigits(4)+" "+randomDigits(4)+" "+randomDigits(4);
+    else if (idType === "PAN") idNumber = randomLetters(5)+randomDigits(4)+randomLetters(1);
+    else idNumber = randomLetters(2)+randomDigits(7);
+    const year = 1985 + Math.floor(rng()*18);
+    const month = String(1+Math.floor(rng()*12)).padStart(2,"0");
+    const day = String(1+Math.floor(rng()*28)).padStart(2,"0");
+    return {
+      ref, name: first+" "+last,
+      email: (first+"."+last+Math.floor(rng()*90+10)+"@mailbox.example").toLowerCase(),
+      phone: "+91 9"+randomDigits(9),
+      dob: `${year}-${month}-${day}`,
+      idType, idNumber,
+      address: pick(SAMPLE_CITY)
+    };
+  }
+  function maskId(raw){
+    const clean = (raw||"").replace(/\s+/g,"");
+    if (!clean) return "—";
+    if (clean.length <= 4) return raw;
+    return "•••• ".repeat(Math.ceil((clean.length-4)/4)).trim() + " " + clean.slice(-4);
+  }
+
+  /* ---------------- Google account (simulated) ---------------- */
+  const GOOGLE_DEMO_ACCOUNTS = [
+    { name: "Ananya Rao", email: "ananya.rao82@gmail.com", phone: "+91 98450 11223" },
+    { name: "Rohit Sharma", email: "rohit.sharma.dev@gmail.com", phone: "+91 90210 44556" },
+    { name: "Priya Iyer", email: "priya.iyer.19@gmail.com", phone: "+91 87654 99001" }
+  ];
+  let googleConnected = null;
+  function openGoogleChooser(){ document.getElementById("googleModalOverlay").style.display = "flex"; }
+  function closeGoogleChooser(){ document.getElementById("googleModalOverlay").style.display = "none"; }
+  function renderGoogleAccountList(){
+    const wrap = document.getElementById("googleAccountList");
+    wrap.innerHTML = GOOGLE_DEMO_ACCOUNTS.map((a,i) => `
+      <button type="button" class="google-account-item" data-idx="${i}">
+        <span class="google-avatar">${a.name.charAt(0)}</span>
+        <span><span class="google-acc-name">${a.name}</span><span class="google-acc-email">${a.email}</span></span>
+      </button>`).join("");
+    wrap.querySelectorAll(".google-account-item").forEach(btn => {
+      btn.addEventListener("click", () => selectGoogleAccount(+btn.dataset.idx));
+    });
+  }
+  async function selectGoogleAccount(idx){
+    closeGoogleChooser();
+    const acc = GOOGLE_DEMO_ACCOUNTS[idx];
+    const status = document.getElementById("googleAuthStatus");
+    status.innerHTML = `<div class="banner info">Connecting to ${acc.email} and fetching profile details…</div>`;
+    await new Promise(r => setTimeout(r, 600));
+    document.getElementById("pName").value = acc.name;
+    document.getElementById("pEmail").value = acc.email;
+    document.getElementById("pPhone").value = acc.phone;
+    googleConnected = acc;
+    status.innerHTML = `<div class="banner ok">Connected as ${acc.email}. Name, email, and phone were filled in from the (simulated) Google profile — review and click "Save profile" below to keep them.</div>`;
+    document.getElementById("btnGoogleConnect").style.display = "none";
+    document.getElementById("btnGoogleDisconnect").style.display = "inline-block";
+  }
+  document.getElementById("btnGoogleConnect").addEventListener("click", () => { renderGoogleAccountList(); openGoogleChooser(); });
+  document.getElementById("btnGoogleDisconnect").addEventListener("click", () => {
+    googleConnected = null;
+    document.getElementById("googleAuthStatus").innerHTML = "";
+    document.getElementById("btnGoogleConnect").style.display = "inline-flex";
+    document.getElementById("btnGoogleDisconnect").style.display = "none";
+  });
+  document.getElementById("googleModalClose").addEventListener("click", closeGoogleChooser);
+  document.getElementById("googleModalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "googleModalOverlay") closeGoogleChooser();
+  });
+
+  /* ---------------- Profile panel ---------------- */
+  function renderProfilePanel(){
+    const wrap = document.getElementById("profileTableWrap");
+    const list = Object.values(profiles);
+    if (!list.length){ wrap.innerHTML = '<p class="empty">No applicant profiles on file yet.</p>'; return; }
+    const rows = list.map(p => `
+      <tr class="row-link" data-ref="${p.ref}">
+        <td>${p.ref}</td><td>${p.name || "—"}</td><td>${p.email || "—"}</td><td>${p.phone || "—"}</td>
+        <td><span class="id-chip">${p.idType}</span></td><td class="hash">${maskId(p.idNumber)}</td>
+      </tr>`).join("");
+    wrap.innerHTML = `<table><thead><tr><th>Applicant ID</th><th>Name</th><th>Email</th><th>Phone</th><th>ID type</th><th>ID number</th></tr></thead><tbody>${rows}</tbody></table>`;
+    wrap.querySelectorAll("tr.row-link").forEach(tr => {
+      tr.addEventListener("click", () => loadProfileIntoForm(tr.dataset.ref));
+    });
+  }
+  function loadProfileIntoForm(ref){
+    const p = profiles[ref];
+    if (!p) return;
+    currentProfileRef = ref;
+    document.getElementById("pName").value = p.name || "";
+    document.getElementById("pEmail").value = p.email || "";
+    document.getElementById("pPhone").value = p.phone || "";
+    document.getElementById("pDob").value = p.dob || "";
+    document.getElementById("pIdType").value = p.idType || "Aadhaar";
+    document.getElementById("pIdNumber").value = p.idNumber || "";
+    document.getElementById("pAddress").value = p.address || "";
+    updateProfileRefDisplay(ref);
+    document.getElementById("profileSaveMsg").innerHTML = `<div class="banner info">Loaded ${ref} into the form. Saving now will update this profile.</div>`;
+  }
+  function updateProfileRefDisplay(ref){
+    document.getElementById("pRefDisplay").textContent = ref ? (ref + " — editing this profile") : "Assigned automatically when you save";
+  }
+  document.getElementById("btnSaveProfile").addEventListener("click", () => {
+    const msg = document.getElementById("profileSaveMsg");
+    const ref = currentProfileRef || generateProfileId();
+    profiles[ref] = {
+      ref,
+      name: document.getElementById("pName").value.trim(),
+      email: document.getElementById("pEmail").value.trim(),
+      phone: document.getElementById("pPhone").value.trim(),
+      dob: document.getElementById("pDob").value,
+      idType: document.getElementById("pIdType").value,
+      idNumber: document.getElementById("pIdNumber").value.trim(),
+      address: document.getElementById("pAddress").value.trim()
+    };
+    currentProfileRef = ref;
+    updateProfileRefDisplay(ref);
+    msg.innerHTML = `<div class="banner ok">Profile saved. Your applicant ID is <b>${ref}</b> — save this ID, you'll need it to submit an application on Apply or to look yourself up here later.</div>`;
+    renderProfilePanel();
+    refreshHeaderStats();
+    populateHelpdeskApplicantSelector();
+    populateApplyRefSelector();
+  });
+  document.getElementById("btnClearProfileForm").addEventListener("click", () => {
+    ["pName","pEmail","pPhone","pDob","pIdNumber","pAddress"].forEach(id => document.getElementById(id).value = "");
+    document.getElementById("pIdType").value = "Aadhaar";
+    currentProfileRef = null;
+    updateProfileRefDisplay(null);
+    document.getElementById("profileSaveMsg").innerHTML = "";
+  });
+
+  document.getElementById("btnLookup").addEventListener("click", () => {
+    const ref = document.getElementById("lookupRef").value.trim();
+    const box = document.getElementById("lookupResult");
+    if (!ref){ box.innerHTML = '<div class="banner bad">Enter an applicant ID to look up.</div>'; return; }
+    const profile = profiles[ref];
+    const apps = applications.filter(a => a.ref === ref);
+    if (!profile && !apps.length){
+      box.innerHTML = `<div class="banner bad">No profile or application found for ${escapeHtml(ref)}. Double-check the ID, or save a new profile below.</div>`;
+      return;
+    }
+    let html = "";
+    if (profile){
+      html += `<div class="banner ok">Profile found for ${ref}.</div>
+        <table><tbody>
+          <tr><th style="width:120px;">Name</th><td>${profile.name || "—"}</td></tr>
+          <tr><th>Email</th><td>${profile.email || "—"}</td></tr>
+          <tr><th>Phone</th><td>${profile.phone || "—"}</td></tr>
+          <tr><th>Address</th><td>${profile.address || "—"}</td></tr>
+        </tbody></table>`;
+    } else {
+      html += `<div class="banner info">No profile saved yet for ${ref} — only application records were found.</div>`;
+    }
+    if (apps.length){
+      const rows = apps.map(a => `
+        <tr><td>${a.timestamp}</td><td>${a.score.toFixed(3)}</td>
+        <td><span class="pill ${a.decision==='APPROVE'?'approve':'decline'}">${a.decision}</span></td><td>v${a.ruleVersion}</td></tr>`).join("");
+      html += `<h3 style="margin-top:18px;">Applications on file</h3><table><thead><tr><th>Date</th><th>Score</th><th>Decision</th><th>Rule</th></tr></thead><tbody>${rows}</tbody></table>`;
+    } else {
+      html += '<p class="empty">No applications on file for this ID yet.</p>';
+    }
+    if (profile){
+      html += `<div class="btn-row"><button class="secondary" id="btnLookupEdit">Load into form for editing</button></div>`;
+    }
+    box.innerHTML = html;
+    if (profile){
+      document.getElementById("btnLookupEdit").addEventListener("click", () => loadProfileIntoForm(ref));
+    }
+  });
+
+  /* ---------------- Decision panel ---------------- */
+  function renderDecisionPanel(){
+    const wrap = document.getElementById("decisionBody");
+    if (!applications.length){
+      wrap.innerHTML = '<p class="empty">No application scored yet. Go to Apply.</p>';
+    } else {
+      const a = applications[applications.length-1];
+      const rule = ruleByVersion(a.ruleVersion);
+      const cls = a.decision === "APPROVE" ? "approve" : "decline";
+      const profile = profiles[a.ref];
+      let reasonsHtml = "";
+      if (a.decision === "DECLINE"){
+        const reasons = adverseReasons(a.features, rule);
+        reasonsHtml = '<h3 style="margin-top:22px;">Reasons for this decision</h3><ul class="reason-list">' +
+          reasons.map(r => `<li><span>${r.label}</span><span class="weight">contributed most to the shortfall</span></li>`).join("") +
+          "</ul>";
+      }
+      wrap.innerHTML = `
+        <div class="stamp-wrap">
+          <div class="stamp ${cls}">${a.decision}D</div>
+          <div class="stamp-meta">
+            <div><b>${a.ref}</b> — audit group ${a.group}</div>
+            ${profile ? `<div>Applicant <b>${profile.name || "Unnamed"}</b>${profile.email ? " · " + profile.email : ""}${profile.phone ? " · " + profile.phone : ""}</div>` : `<div class="empty" style="padding:0; display:inline;">No profile on file for this reference — see Profile.</div>`}
+            ${a.propertySqft !== undefined ? `<div>Property on file: <b>${a.propertySqft} sq ft</b>${a.assets ? " · " + escapeHtml(a.assets) : ""}</div>` : ""}
+            <div>Score <b>${a.score.toFixed(3)}</b> against threshold <b>${rule.threshold.toFixed(2)}</b></div>
+            <div>Scored under rulebook <b>v${a.ruleVersion}</b> on ${a.timestamp}</div>
+          </div>
+        </div>
+        ${reasonsHtml}
+      `;
+    }
+    renderAppsTable();
+  }
+
+  function renderAppsTable(){
+    const wrap = document.getElementById("appsTableWrap");
+    if (!applications.length){ wrap.innerHTML = '<p class="empty">Nothing on file yet.</p>'; return; }
+    let rows = applications.slice().reverse().map(a => `
+      <tr class="row-link" data-appid="${a.id}">
+        <td>${a.ref}</td><td>${a.group}</td><td>${a.score.toFixed(3)}</td>
+        <td><span class="pill ${a.decision==='APPROVE'?'approve':'decline'}">${a.decision}</span></td>
+        <td>v${a.ruleVersion}</td><td>${a.timestamp}</td>
+      </tr>`).join("");
+    wrap.innerHTML = `<table><thead><tr><th>Applicant ID</th><th>Group</th><th>Score</th><th>Decision</th><th>Rule</th><th>Date</th></tr></thead><tbody>${rows}</tbody></table>`;
+    wrap.querySelectorAll("tr.row-link").forEach(tr => {
+      tr.addEventListener("click", () => {
+        showStage("replay");
+        document.getElementById("replayApp").value = tr.dataset.appid;
+      });
+    });
+  }
+
+  /* ---------------- Rulebook panel ---------------- */
+  const wSliders = ["w-rent","w-util","w-tel","w-property"];
+  const wLabels = { "w-rent":"v-w-rent", "w-util":"v-w-util", "w-tel":"v-w-tel", "w-property":"v-w-property" };
+  wSliders.forEach(id => {
+    document.getElementById(id).addEventListener("input", () => {
+      document.getElementById(wLabels[id]).textContent = (+document.getElementById(id).value/100).toFixed(2);
+      checkWeightSum();
+    });
+  });
+  document.getElementById("ruleThresh").addEventListener("input", (e) => {
+    document.getElementById("v-thresh").textContent = (+e.target.value/100).toFixed(2);
+  });
+  function checkWeightSum(){
+    const total = wSliders.reduce((s,id) => s + (+document.getElementById(id).value/100), 0);
+    const warn = document.getElementById("ruleWeightWarn");
+    if (Math.abs(total - 1) > 0.03){
+      warn.innerHTML = `<div class="banner info">Weights sum to ${total.toFixed(2)}, not 1.00. You can still publish, but scores will drift outside 0–1.</div>`;
+    } else { warn.innerHTML = ""; }
+  }
+
+  function renderRulebookPanel(){
+    const wrap = document.getElementById("rulebookTableWrap");
+    const rows = rulebook.map(r => `
+      <tr>
+        <td>v${r.version}</td><td>${r.effectiveDate}</td><td>${r.threshold.toFixed(2)}</td>
+        <td style="font-size:12px; color:var(--ink-soft);">${Object.entries(r.weights).map(([k,v]) => FEATURE_LABELS[k].split(" ")[0]+" "+v.toFixed(2)).join(" · ")}</td>
+        <td>${r.note}</td>
+      </tr>`).join("");
+    wrap.innerHTML = `<table><thead><tr><th>Version</th><th>Effective</th><th>Threshold</th><th>Weights</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  document.getElementById("btnPublishRule").addEventListener("click", () => {
+    const newRule = {
+      version: rulebook.length + 1,
+      effectiveDate: document.getElementById("ruleDate").value || "2026-09-12",
+      weights: {
+        rentRegularity: +document.getElementById("w-rent").value/100,
+        utilityRegularity: +document.getElementById("w-util").value/100,
+        telecomActivity: +document.getElementById("w-tel").value/100,
+        propertySize: +document.getElementById("w-property").value/100
+      },
+      threshold: +document.getElementById("ruleThresh").value/100,
+      note: document.getElementById("ruleNote").value.trim() || "No note provided."
+    };
+    rulebook.push(newRule);
+    refreshHeaderStats();
+    renderRulebookPanel();
+    populateReplaySelectors();
+  });
+
+  /* ---------------- Audit panel ---------------- */
+  function renderAuditPanel(){
+    const wrap = document.getElementById("auditTableWrap");
+    if (!auditLog.length){ wrap.innerHTML = '<p class="empty">No decisions logged yet.</p>'; return; }
+    const rows = auditLog.map(r => `
+      <tr>
+        <td>#${r.id}</td><td>${r.ref}</td>
+        <td><span class="pill ${r.decision==='APPROVE'?'approve':'decline'}">${r.decision}</span></td>
+        <td class="hash">${r.prevHash.slice(0,12)}…</td>
+        <td class="hash">${r.hash.slice(0,12)}…</td>
+      </tr>`).join("");
+    wrap.innerHTML = `<table><thead><tr><th>#</th><th>Applicant ID</th><th>Decision</th><th>Prev. hash</th><th>Record hash</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  document.getElementById("btnVerify").addEventListener("click", async () => {
+    const results = await verifyChain();
+    const bad = results.filter(r => !r.ok);
+    const box = document.getElementById("verifyResult");
+    box.innerHTML = bad.length
+      ? `<div class="banner bad">Chain broken at record #${bad[0].id} onward. ${bad.length} of ${results.length} records no longer match their stored hash.</div>`
+      : `<div class="banner ok">Chain verified. All ${results.length} records match, in order, back to the genesis hash.</div>`;
+  });
+  document.getElementById("btnTamper").addEventListener("click", () => {
+    if (!auditLog.length) return;
+    if (!tamperedBackup) tamperedBackup = JSON.parse(JSON.stringify(auditLog[0]));
+    auditLog[0].decision = auditLog[0].decision === "APPROVE" ? "DECLINE" : "APPROVE";
+    document.getElementById("verifyResult").innerHTML = '<div class="banner info">Record #1\'s decision was overwritten directly in memory, hash left untouched. Click "Verify chain integrity" to see it caught.</div>';
+    renderAuditPanel();
+  });
+  document.getElementById("btnResetTamper").addEventListener("click", () => {
+    if (tamperedBackup) { auditLog[0] = tamperedBackup; tamperedBackup = null; }
+    document.getElementById("verifyResult").innerHTML = "";
+    renderAuditPanel();
+  });
+
+  /* ---------------- Replay panel ---------------- */
+  function populateReplaySelectors(){
+    const appSel = document.getElementById("replayApp");
+    const ruleSel = document.getElementById("replayRule");
+    appSel.innerHTML = applications.map(a => `<option value="${a.id}">${a.ref} (scored under v${a.ruleVersion})</option>`).join("") || '<option value="">No applications yet</option>';
+    ruleSel.innerHTML = rulebook.map(r => `<option value="${r.version}">v${r.version} — effective ${r.effectiveDate}</option>`).join("");
+  }
+  function renderReplayPanel(){ populateReplaySelectors(); document.getElementById("replayResult").innerHTML = ""; }
+  document.getElementById("btnReplay").addEventListener("click", () => {
+    const appId = +document.getElementById("replayApp").value;
+    const ruleV = +document.getElementById("replayRule").value;
+    const app = applications.find(a => a.id === appId);
+    const box = document.getElementById("replayResult");
+    if (!app){ box.innerHTML = '<p class="empty">Pick an applicant first.</p>'; return; }
+    const rule = ruleByVersion(ruleV);
+    const score = scoreFeatures(app.features, rule);
+    const decision = decisionForScore(score, rule);
+    const match = (ruleV === app.ruleVersion) ? (score === app.score && decision === app.decision) : null;
+    let banner;
+    if (match === null){
+      banner = `<div class="banner info">Replayed against a different rulebook version than was used originally — this is what your Round 1 "impact simulator" is for, not a reproducibility check.</div>`;
+    } else if (match){
+      banner = `<div class="banner ok">Match. Replaying v${ruleV} against the stored inputs reproduces score ${score.toFixed(3)} and decision ${decision} exactly.</div>`;
+    } else {
+      banner = `<div class="banner bad">Mismatch. Original was ${app.score.toFixed(3)} / ${app.decision}; replay produced ${score.toFixed(3)} / ${decision}. That would fail the reproducibility gate.</div>`;
+    }
+    box.innerHTML = banner;
+  });
+
+  /* ---------------- Fairness panel ---------------- */
+  function renderFairnessPanel(){
+    const bars = document.getElementById("fairnessBars");
+    if (applications.length < 2){ bars.innerHTML = '<p class="empty">Score some applications first.</p>'; }
+    else {
+      const rates = approvalRatesByGroup();
+      bars.innerHTML = Object.entries(rates).map(([g,v]) => {
+        const pct = v.total ? Math.round(100*v.approved/v.total) : 0;
+        return `<div class="fair-bar-row"><div class="g-label">${g}</div><div class="fair-bar-track"><div class="fair-bar-fill" style="width:${pct}%"></div></div><div class="g-val">${pct}%</div></div>`;
+      }).join("");
+    }
+    const proxy = document.getElementById("proxyTableWrap");
+    const corr = proxyCorrelations();
+    if (!corr){ proxy.innerHTML = '<p class="empty">Score some applications first.</p>'; }
+    else {
+      const rows = Object.entries(corr).map(([k,v]) => {
+        const flag = Math.abs(v) > 0.3;
+        return `<tr><td>${FEATURE_LABELS[k]}</td><td>${v.toFixed(2)}</td><td>${flag ? '<span class="pill decline">check for proxy</span>' : '<span class="pill approve">low</span>'}</td></tr>`;
+      }).join("");
+      proxy.innerHTML = `<table><thead><tr><th>Feature</th><th>Correlation with group</th><th>Flag</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+  }
+
+  /* ---------------- Helpdesk panel ---------------- */
+  function populateHelpdeskApplicantSelector(){
+    const sel = document.getElementById("helpdeskApplicant");
+    const current = sel.value;
+    const opts = ['<option value="">General question — no applicant selected</option>']
+      .concat(applications.map(a => `<option value="${a.ref}">${a.ref} — ${a.decision}</option>`));
+    sel.innerHTML = opts.join("");
+    if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  }
+
+  function buildHelpdeskSystemPrompt(){
+    let context = "You are the helpdesk assistant embedded in the Credit Decision Register (FS-2602), a demo thin-file credit-scoring tool. It scores applicants on four alternate-data signals (rent payment regularity, utility bill regularity, telecom account activity, property/home size in square feet) against a versioned, effective-dated rulebook, produces an APPROVE or DECLINE decision, logs every decision in a hash-chained audit trail, supports replaying a past decision against any rulebook version, and measures approval-rate parity plus proxy correlation across an audit group that is never used as a scoring input. A free-text 'other assets' note and a simulated Google-account profile lookup are also on file per applicant, both for context only — neither is ever used as a scoring input. No real credit bureau is called. Answer applicant questions helpfully, plainly, and briefly (a few sentences unless more detail is clearly needed). Do not give real financial or legal advice, and never invent a decision, score, or personal detail that isn't given to you below.";
+    const ref = document.getElementById("helpdeskApplicant").value;
+    const app = applications.find(a => a.ref === ref);
+    if (app){
+      const rule = ruleByVersion(app.ruleVersion);
+      context += ` You are currently talking to applicant ${ref}. Their stored decision: score ${app.score.toFixed(3)} against threshold ${rule.threshold.toFixed(2)} under rulebook v${app.ruleVersion}, decision ${app.decision}.`;
+      const profile = profiles[ref];
+      if (profile && profile.name) context += ` Their profile name on file is ${profile.name}.`;
+      if (app.decision === "DECLINE"){
+        const reasons = adverseReasons(app.features, rule).map(r => r.label).join(", ");
+        context += ` The factors that contributed most to the shortfall were: ${reasons}.`;
+      }
+    } else {
+      context += " No specific applicant is selected, so answer in general terms about how the register works.";
+    }
+    return context;
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement("div");
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function renderChatLog(){
+    const log = document.getElementById("chatLog");
+    if (!helpdeskMessages.length){
+      log.innerHTML = '<p class="empty">Ask anything about a decision, the scoring signals, or how to read this register.</p>';
+      return;
+    }
+    log.innerHTML = helpdeskMessages.map(m =>
+      `<div class="chat-bubble ${m.role === "user" ? "user" : "assistant"}">${escapeHtml(m.content)}</div>`
+    ).join("");
+    log.scrollTop = log.scrollHeight;
+  }
+
+  async function sendChatMessage(rawText){
+    const text = (rawText || "").trim();
+    if (!text) return;
+    helpdeskMessages.push({ role: "user", content: text });
+    renderChatLog();
+    document.getElementById("chatInput").value = "";
+    document.getElementById("chatError").innerHTML = "";
+    document.getElementById("chatTyping").style.display = "block";
+    document.getElementById("btnChatSend").disabled = true;
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: buildHelpdeskSystemPrompt(),
+          messages: helpdeskMessages
+        })
+      });
+      if (!response.ok) throw new Error("Request failed with status " + response.status);
+      const data = await response.json();
+      const reply = (data.content || []).map(b => b.text || "").join("\n").trim()
+        || "I didn't get a usable reply from the assistant. Please try again.";
+      helpdeskMessages.push({ role: "assistant", content: reply });
+    } catch (err) {
+      helpdeskMessages.pop();
+      document.getElementById("chatInput").value = text;
+      document.getElementById("chatError").innerHTML = '<div class="banner bad">Message failed to send. Check your connection and try again.</div>';
+    } finally {
+      document.getElementById("chatTyping").style.display = "none";
+      document.getElementById("btnChatSend").disabled = false;
+      renderChatLog();
+    }
+  }
+
+  function renderHelpdeskPanel(){
+    populateHelpdeskApplicantSelector();
+    renderChatLog();
+  }
+
+  document.getElementById("btnChatSend").addEventListener("click", () => sendChatMessage(document.getElementById("chatInput").value));
+  document.getElementById("chatInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      sendChatMessage(document.getElementById("chatInput").value);
+    }
+  });
+  document.querySelectorAll(".chat-quick").forEach(btn => {
+    btn.addEventListener("click", () => sendChatMessage(btn.dataset.prompt));
+  });
+
+  /* ---------------- Welcome page ---------------- */
+  document.getElementById("btnWelcomeBegin").addEventListener("click", () => {
+    document.getElementById("welcomePage").style.display = "none";
+    document.getElementById("appShell").style.display = "flex";
+    showStage("profile");
+  });
+
+  /* ---------------- Theme toggle ---------------- */
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("fs2602-theme", theme); } catch(e) {}
+    const btn = document.getElementById("themeToggle");
+    const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
+    btn.setAttribute("aria-label", label);
+    btn.setAttribute("title", label);
+  }
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    applyTheme(current === "dark" ? "light" : "dark");
+  });
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light");
+
+  /* ---------------- init ---------------- */
+  refreshHeaderStats();
+  populateReplaySelectors();
+  populateHelpdeskApplicantSelector();
+  populateApplyRefSelector();
+  updateProfileRefDisplay(null);
+})();
+</script>
+</body>
+</html>
