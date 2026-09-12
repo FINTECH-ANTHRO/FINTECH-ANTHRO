@@ -1,0 +1,12 @@
+services:
+  fs2602:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      FS2602_DB: /app/data/fs2602.db
+      FS2602_SEED_DEMO: "1"
+    volumes:
+      - fs2602_data:/app/data
+volumes:
+  fs2602_data:

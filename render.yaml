@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: fs2602-credit-decisioning
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: FS2602_DB
+        value: /app/data/fs2602.db
+      - key: FS2602_SEED_DEMO
+        value: "1"
+    disk:
+      name: fs2602-data
+      mountPath: /app/data
+      sizeGB: 1
